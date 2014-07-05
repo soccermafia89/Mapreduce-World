@@ -41,21 +41,20 @@ public class WorldRunner extends Configured implements Tool {
 //    private int runCounter;
 //    private Path inputPath;
 
-    public WorldRunner(Partition myPartition, Properties props) {
+    public WorldRunner(Partition myPartition, String workingDirectory) {
 //        runCounter = 0;
         rootPartition = myPartition;
 
-        workDirectory = props.getProperty(WORK_DIRECTORY_KEY);
+        workDirectory = workingDirectory;
         logger.info("HDFS Work directory set to: " + workDirectory);
     }
 
-    public void validateProperties(Properties props) {
-        String workDirectory = props.getProperty(WORK_DIRECTORY_KEY);
-        if (workDirectory == null || workDirectory.isEmpty()) {
-            throw new RuntimeException("Missing required property: " + WORK_DIRECTORY_KEY);
-        }
-    }
-
+//    public void validateProperties(Properties props) {
+//        String workDirectory = props.getProperty(WORK_DIRECTORY_KEY);
+//        if (workDirectory == null || workDirectory.isEmpty()) {
+//            throw new RuntimeException("Missing required property: " + WORK_DIRECTORY_KEY);
+//        }
+//    }
     @Override
     public int run(String[] strings) throws Exception {
 
@@ -67,7 +66,7 @@ public class WorldRunner extends Configured implements Tool {
         Path inputPath = new Path(rootPartitionPath.getParent().toString() + "/root");
         int runCounter = 0;
         JobConf jobConf = null;
-        
+
         while (jobConf == null || hasIncompletePartitions(jobConf, inputPath)) {
 
             jobConf = new JobConf(getConf());
@@ -97,6 +96,16 @@ public class WorldRunner extends Configured implements Tool {
 
             int success = job.waitForCompletion(true) ? 0 : 1;
 
+            if (success == 1) {
+                logger.error("Unsuccessful job run for run counter: " + runCounter);
+                return 1;
+            }
+
+            if (runCounter > 1) {
+                logger.error("Breaking after max runs.");
+                break;
+            }
+
             Path completedPartitionsPath = HdfsOutput.getNamedOutput(job, COMPLETE_PARTITION_NAMED_OUTPUT);
             Path incompletePartitionsPath = HdfsOutput.getNamedOutput(job, INCOMPLETE_PARTITION_NAMED_OUTPUT);
             inputPath = new Path(workDirectory + "/input/");
@@ -113,17 +122,6 @@ public class WorldRunner extends Configured implements Tool {
 //            HdfsOutput.moveDefaultOutput(jobConf, inputPath);
 
             runCounter++;
-
-
-            if (success == 1) {
-                logger.error("Unsuccessful job run for run counter: " + runCounter);
-                return 1;
-            }
-
-            if (runCounter > 1) {
-                logger.error("Breaking after max runs.");
-                break;
-            }
         }
 
         return 0;

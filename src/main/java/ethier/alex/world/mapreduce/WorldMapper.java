@@ -9,6 +9,7 @@ import ethier.alex.world.core.data.ElementState;
 import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.core.processor.SimpleProcessor;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.io.MapWritable;
@@ -43,19 +44,26 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
     public void map(Text key, PartitionWritable value, Context context) {
 
         Partition rootPartition = value.getPartition();
-        SimpleProcessor simpleProcessor = new SimpleProcessor(rootPartition);
-
-        simpleProcessor.runSet();
-
-        Collection<ElementList> elements = simpleProcessor.getCompletedPartitions();
-        context.getCounter("Statistics", "Completed Partitions").increment(elements.size());
+        Collection<Partition> incompletePartitions = new ArrayList<Partition>();
+        incompletePartitions.add(rootPartition);
         
-        Collection<Partition> incompletePartitions = simpleProcessor.getIncompletePartitions();
+        Collection<ElementList> completedPartitions = new ArrayList<ElementList>();
+        while(incompletePartitions.size() < 10000) {
+        
+            SimpleProcessor simpleProcessor = new SimpleProcessor(rootPartition);
+
+            simpleProcessor.runSet();
+
+            completedPartitions.addAll(simpleProcessor.getCompletedPartitions());
+            incompletePartitions = simpleProcessor.getIncompletePartitions();
+        }
+        
+        context.getCounter("Statistics", "Completed Partitions").increment(completedPartitions.size());        
         context.getCounter("Statistics", "Passed Partitions").increment(incompletePartitions.size());
 
         try {
             
-            for (ElementList element : elements) {
+            for (ElementList element : completedPartitions) {
                 outputWriter.write(WorldRunner.COMPLETE_PARTITION_NAMED_OUTPUT, key, new ElementListWritable(element));
             }
                         
