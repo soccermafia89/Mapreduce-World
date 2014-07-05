@@ -30,10 +30,13 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
     
 //    private MultipleOutputs mos;
     HdfsOutput outputWriter;
+    int initialRunNumber;
 
     @Override
     protected void setup(Context context) {
 
+        initialRunNumber = Integer.parseInt(context.getConfiguration().get(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY));
+        
         int mapperId = context.getTaskAttemptID().getTaskID().getId();
         outputWriter = new HdfsOutput(context);
         logger.info("Setting up mapper: " + mapperId);
@@ -48,16 +51,31 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
         incompletePartitions.add(rootPartition);
         
         Collection<ElementList> completedPartitions = new ArrayList<ElementList>();
-        while(incompletePartitions.size() < 10000) {
-        
-            SimpleProcessor simpleProcessor = new SimpleProcessor(rootPartition);
-
+        int processedPartitions = 0;
+        while(incompletePartitions.size() < initialRunNumber && incompletePartitions.size() > 0) {
+            
+            SimpleProcessor simpleProcessor = new SimpleProcessor(incompletePartitions);
+            logger.info("Running set over: " + incompletePartitions.size() + " partitions.");
+            processedPartitions += incompletePartitions.size();
+            
             simpleProcessor.runSet();
 
             completedPartitions.addAll(simpleProcessor.getCompletedPartitions());
             incompletePartitions = simpleProcessor.getIncompletePartitions();
+ 
+            logger.info("Finished Set.");
+            logger.info("Completed Partitions: " + completedPartitions.size());
+            logger.info("New Partitions: " + incompletePartitions.size());
+            logger.info("Num Processed Partitions: " + processedPartitions);
+            logger.info("Initial Run Number: " + initialRunNumber);
         }
         
+//        if(initialRunNumber < Integer.MAX_VALUE / 20) {
+//            initialRunNumber = initialRunNumber*10; 
+//        }
+        
+        context.getCounter("Statistics", "Keys Encountered").increment(1);
+        context.getCounter("Statistics", "Processed Partitions").increment(processedPartitions);
         context.getCounter("Statistics", "Completed Partitions").increment(completedPartitions.size());        
         context.getCounter("Statistics", "Passed Partitions").increment(incompletePartitions.size());
 

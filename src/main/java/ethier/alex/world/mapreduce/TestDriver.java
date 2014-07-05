@@ -30,7 +30,7 @@ public class TestDriver {
     
     public void drive(String[] args) throws Exception {
         
-        this.runComplementTest();
+        this.runComplementTest(args);
         
 //        int[] radices = new int[4];
 //        radices[0] = 3;
@@ -74,7 +74,7 @@ public class TestDriver {
 //        System.exit(ret);
     }
     
-    public void runComplementTest() throws Exception {
+    public void runComplementTest(String[] args) throws Exception {
             System.out.println("");
             System.out.println("");
             System.out.println("********************************************");
@@ -90,8 +90,8 @@ public class TestDriver {
             //Note the complement is a great way to determine the efficiency of the algorithm.
 
 
-            int ones = 8;
-            int worldLength = 16;
+            int ones = 10;
+            int worldLength = 20;
 //            int ones = 2;
 //            int worldLength = 4;
 
@@ -133,7 +133,9 @@ public class TestDriver {
         WorldRunner worldRunner = new WorldRunner(rootPartition, "/world");
         
         Configuration conf = new Configuration();
-        int ret = ToolRunner.run(conf, worldRunner, null);
+        conf.set("mapred.max.split.size", "5000000");
+        conf.set(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY, "" + 10000);
+        int ret = ToolRunner.run(conf, worldRunner, args);//args must be passed in from shell.
         System.exit(ret);
     }
 }

@@ -7,6 +7,7 @@ package ethier.alex.world.mapreduce;
 import ethier.alex.world.core.data.Partition;
 import java.io.IOException;
 import java.util.Properties;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -40,6 +41,7 @@ public class WorldRunner extends Configured implements Tool {
     private Partition rootPartition;
 //    private int runCounter;
 //    private Path inputPath;
+    public static final String RUN_INTITIAL_PARTITIONS_KEY = "ethier.alex.world.mapreduce.intial.partitions";
 
     public WorldRunner(Partition myPartition, String workingDirectory) {
 //        runCounter = 0;
@@ -55,8 +57,21 @@ public class WorldRunner extends Configured implements Tool {
 //            throw new RuntimeException("Missing required property: " + WORK_DIRECTORY_KEY);
 //        }
 //    }
+    
+    public void validateConf(Configuration conf) {
+        String initialPartitionRun = conf.get(RUN_INTITIAL_PARTITIONS_KEY);
+        try {
+            Integer.parseInt(initialPartitionRun);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not parse required int property in Configuration: " + RUN_INTITIAL_PARTITIONS_KEY + ""
+                    + " Caused by: " + ExceptionUtils.getFullStackTrace(e));
+        }
+    }
+    
     @Override
     public int run(String[] strings) throws Exception {
+        
+        this.validateConf(getConf());
 
         this.writeRootPartition();
 
@@ -101,7 +116,7 @@ public class WorldRunner extends Configured implements Tool {
                 return 1;
             }
 
-            if (runCounter > 1) {
+            if (runCounter > 2) {
                 logger.error("Breaking after max runs.");
                 break;
             }
@@ -129,9 +144,10 @@ public class WorldRunner extends Configured implements Tool {
 
     public boolean hasIncompletePartitions(Configuration conf, Path inputPath) throws IOException {
         FileSystem fileSystem = FileSystem.get(conf);
-
-        RemoteIterator<LocatedFileStatus> it = fileSystem.listFiles(inputPath, true);
-        return it.hasNext();
+        
+        return fileSystem.exists(inputPath);
+//        RemoteIterator<LocatedFileStatus> it = fileSystem.listFiles(inputPath, true);
+//        return it.hasNext();
     }
 
 //    public int processPartitions(JobConf jobConf) throws IOException, InterruptedException, ClassNotFoundException {
