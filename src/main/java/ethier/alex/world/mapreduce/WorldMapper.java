@@ -5,6 +5,7 @@
 package ethier.alex.world.mapreduce;
 
 import ethier.alex.world.core.data.ElementList;
+import ethier.alex.world.core.data.ElementState;
 import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.core.processor.SimpleProcessor;
 import java.io.IOException;
@@ -26,13 +27,14 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
 
     private static Logger logger = Logger.getLogger(WorldMapper.class);
     
-    private MultipleOutputs mos;
+//    private MultipleOutputs mos;
+    HdfsOutput outputWriter;
 
     @Override
     protected void setup(Context context) {
 
         int mapperId = context.getTaskAttemptID().getTaskID().getId();
-        mos = new MultipleOutputs(context);
+        outputWriter = new HdfsOutput(context);
         logger.info("Setting up mapper: " + mapperId);
         logger.info("Setup complete.");
     }
@@ -40,8 +42,8 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
     @Override
     public void map(Text key, PartitionWritable value, Context context) {
 
-        Partition partition = value.getPartition();
-        SimpleProcessor simpleProcessor = new SimpleProcessor(partition);
+        Partition rootPartition = value.getPartition();
+        SimpleProcessor simpleProcessor = new SimpleProcessor(rootPartition);
 
         simpleProcessor.runSet();
 
@@ -54,13 +56,11 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
         try {
             
             for (ElementList element : elements) {
-                mos.write("seq2", key, new ElementListWritable(element));
-//                context.write(key, new ElementListWritable(element));
+                outputWriter.write(WorldRunner.COMPLETE_PARTITION_NAMED_OUTPUT, key, new ElementListWritable(element));
             }
                         
             for(Partition incompletePartition : incompletePartitions) {
-                mos.write("seq1", key, new PartitionWritable(incompletePartition));
-//                context.write(key, new PartitionWritable(incompletePartition));
+                outputWriter.write(WorldRunner.INCOMPLETE_PARTITION_NAMED_OUTPUT, key, new PartitionWritable(incompletePartition));
             }
 
         } catch (IOException e) {
@@ -68,5 +68,10 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
         } catch (InterruptedException e) {
             throw new RuntimeException("Unable to write element.  Caused by: " + ExceptionUtils.getFullStackTrace(e));
         }
+    }
+    
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException {
+        outputWriter.close();
     }
 }

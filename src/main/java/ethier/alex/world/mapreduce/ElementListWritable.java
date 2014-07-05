@@ -47,7 +47,7 @@ public class ElementListWritable implements Writable {
 
     private void writeWorldSize(DataOutput out) throws IOException {
         worldSize = elementList.getLength();
-        out.write(worldSize);
+        out.writeInt(worldSize);
     }
 
     private void readWorldSize(DataInput in) throws IOException {
@@ -57,7 +57,7 @@ public class ElementListWritable implements Writable {
     private void writeElements(DataOutput out) throws IOException {
         int[] ordinals = elementList.getOrdinals();
         for (int i = 0; i < ordinals.length; i++) {
-            out.write(ordinals[i]);
+            out.writeInt(ordinals[i]);
         }
 
         ElementState[] elementStates = elementList.getElementStates();

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.apache.hadoop.io.Writable;
+import org.apache.log4j.Logger;
 
 /**
 
@@ -21,8 +22,13 @@ import org.apache.hadoop.io.Writable;
  */
 public class PartitionWritable implements Writable {
 
+    private static Logger logger = Logger.getLogger(PartitionWritable.class);
     private Partition partition;
     int worldSize;
+
+    public PartitionWritable() {
+        // No arg constructor required for hadoop Writable.
+    }
 
     public PartitionWritable(Partition myPartition) {
         partition = myPartition;
@@ -57,7 +63,7 @@ public class PartitionWritable implements Writable {
 
     private void writeWorldSize(DataOutput out) throws IOException {
         worldSize = partition.getRadices().length;
-        out.write(worldSize);
+        out.writeInt(worldSize);
     }
 
     private void readWorldSize(DataInput in) throws IOException {
@@ -67,7 +73,7 @@ public class PartitionWritable implements Writable {
     private void writeRadices(DataOutput out) throws IOException {
         int[] radices = partition.getRadices();
         for (int i = 0; i < radices.length; i++) {
-            out.write(radices[i]);
+            out.writeInt(radices[i]);
         }
     }
 
@@ -83,7 +89,7 @@ public class PartitionWritable implements Writable {
     }
 
     private void writeElements(DataOutput out) throws IOException {
-        
+
         ElementListWritable elementListWritable = new ElementListWritable(partition.getElements());
         elementListWritable.write(out);
 //        int[] ordinals = partition.getElements().getOrdinals();
@@ -98,11 +104,11 @@ public class PartitionWritable implements Writable {
     }
 
     private ElementList readElementList(DataInput in) throws IOException {
-        
+
         ElementListWritable elementListWritable = new ElementListWritable();
         elementListWritable.readFields(in);
         return elementListWritable.getElementList();
-        
+
 //        ElementListBuilder elementListBuilder = ElementListBuilder.newInstance();
 //
 //        int[] ordinals = new int[worldSize];
@@ -120,20 +126,20 @@ public class PartitionWritable implements Writable {
 //
 //        return elementListBuilder.getElementList();
     }
-    
+
     private void writeFilters(DataOutput out) throws IOException {
         int numFilters = partition.getFilters().size();
-        out.write(numFilters);
-        
-        for(FilterList filter : partition.getFilters()) {
+        out.writeInt(numFilters);
+
+        for (FilterList filter : partition.getFilters()) {
             int[] ordinals = filter.getOrdinals();
-            
-            for(int i=0; i < ordinals.length;i++) {
-                out.write(ordinals[i]);
+
+            for (int i = 0; i < ordinals.length; i++) {
+                out.writeInt(ordinals[i]);
             }
-            
+
             FilterState[] filterStates = filter.getFilterStates();
-            for(int i=0; i < filterStates.length;i++) {
+            for (int i = 0; i < filterStates.length; i++) {
                 out.writeUTF(filterStates[i].name());
             }
         }

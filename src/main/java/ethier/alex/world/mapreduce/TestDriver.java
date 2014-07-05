@@ -8,6 +8,7 @@ import ethier.alex.world.addon.FilterListBuilder;
 import ethier.alex.world.addon.PartitionBuilder;
 import ethier.alex.world.core.data.FilterList;
 import ethier.alex.world.core.data.Partition;
+import java.util.Properties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -59,7 +60,10 @@ public class TestDriver {
                 .addFilter(filter4)
                 .getPartition();
         
-        WorldRunner worldRunner = new WorldRunner(rootPartition);
+        Properties props = new Properties();
+        props.setProperty(WorldRunner.WORK_DIRECTORY_KEY, "/world");
+        
+        WorldRunner worldRunner = new WorldRunner(rootPartition, props);
         
         Configuration conf = new Configuration();
         int ret = ToolRunner.run(conf, worldRunner, args);
