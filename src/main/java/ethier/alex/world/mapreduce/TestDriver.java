@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
@@ -90,8 +91,8 @@ public class TestDriver {
             //Note the complement is a great way to determine the efficiency of the algorithm.
 
 
-            int ones = 10;
-            int worldLength = 20;
+            int ones = 9;
+            int worldLength = 18;
 //            int ones = 2;
 //            int worldLength = 4;
 
@@ -130,7 +131,8 @@ public class TestDriver {
                     .addFilters(filters)
                     .getPartition();
             
-        WorldRunner worldRunner = new WorldRunner(rootPartition, "/world");
+        String outputPath = "/world/completed/";
+        WorldRunner worldRunner = new WorldRunner(rootPartition, "/world", outputPath);
         
         Configuration conf = new Configuration();
         conf.set("mapred.max.split.size", "5000000");

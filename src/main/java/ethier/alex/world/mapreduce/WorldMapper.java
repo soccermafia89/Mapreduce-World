@@ -5,19 +5,15 @@
 package ethier.alex.world.mapreduce;
 
 import ethier.alex.world.core.data.ElementList;
-import ethier.alex.world.core.data.ElementState;
 import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.core.processor.SimpleProcessor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.log4j.Logger;
 
 /**
@@ -63,11 +59,11 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
             completedPartitions.addAll(simpleProcessor.getCompletedPartitions());
             incompletePartitions = simpleProcessor.getIncompletePartitions();
  
-            logger.info("Finished Set.");
-            logger.info("Completed Partitions: " + completedPartitions.size());
-            logger.info("New Partitions: " + incompletePartitions.size());
-            logger.info("Num Processed Partitions: " + processedPartitions);
-            logger.info("Initial Run Number: " + initialRunNumber);
+//            logger.info("Finished Set.");
+//            logger.info("Completed Partitions: " + completedPartitions.size());
+//            logger.info("New Partitions: " + incompletePartitions.size());
+//            logger.info("Num Processed Partitions: " + processedPartitions);
+//            logger.info("Initial Run Number: " + initialRunNumber);
         }
         
 //        if(initialRunNumber < Integer.MAX_VALUE / 20) {
