@@ -4,14 +4,22 @@
  */
 package ethier.alex.world.mapreduce;
 
+import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.addon.FilterListBuilder;
 import ethier.alex.world.addon.PartitionBuilder;
+import ethier.alex.world.core.data.ElementList;
 import ethier.alex.world.core.data.FilterList;
 import ethier.alex.world.core.data.Partition;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -131,13 +139,33 @@ public class TestDriver {
                     .addFilters(filters)
                     .getPartition();
             
-        String outputPath = "/world/completed/";
-        WorldRunner worldRunner = new WorldRunner(rootPartition, "/world", outputPath);
+        String completedPartitionsOutput = "/world/completed/";
+        WorldRunner worldRunner = new WorldRunner(rootPartition, "/world", completedPartitionsOutput);
         
         Configuration conf = new Configuration();
         conf.set("mapred.max.split.size", "5000000");
         conf.set(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY, "" + 10000);
-        int ret = ToolRunner.run(conf, worldRunner, args);//args must be passed in from shell.
+        int ret = 0;
+//        ret = ToolRunner.run(conf, worldRunner, args);//args must be passed in from shell.
+        
+        if(ret != 0) {
+            throw new RuntimeException("Tool Runner failed.");
+        }
+        
+        String serializedResultPath = "/world/results";
+        ResultExportRunner resultExportRunner = new ResultExportRunner("/world", new Path(completedPartitionsOutput), new Path(serializedResultPath));
+        ret = ToolRunner.run(conf, resultExportRunner, args);
         System.exit(ret);
+        
+        FileSystem fileSystem = FileSystem.get(conf);
+        FSDataInputStream inputStream = fileSystem.open(new Path(serializedResultPath));
+        StringWriter writer = new StringWriter();
+        IOUtils.copy(inputStream, writer, "UTF-8");
+        String raw = writer.toString();
+        Collection<byte[]> bytes = CollectionByteSerializer.toBytes(raw);
+        
+        //Load datainput with bytes then in a loop create the element lists.
+//        DataInput dataInput = new DataInputStream(bytes.);
+//        ElementList elementList = new ElementList(dataInput);
     }
 }

@@ -5,16 +5,12 @@
 package ethier.alex.world.mapreduce;
 
 import ethier.alex.world.core.data.Partition;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
@@ -130,7 +126,7 @@ public class WorldRunner extends Configured implements Tool {
 
             runCounter++;
         }
-
+        
         return 0;
     }
 

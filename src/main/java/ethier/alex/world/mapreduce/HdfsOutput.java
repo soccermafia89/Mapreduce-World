@@ -10,8 +10,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper.Context;
 import org.apache.hadoop.mapreduce.OutputFormat;
+import org.apache.hadoop.mapreduce.TaskInputOutputContext;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.log4j.Logger;
@@ -31,9 +31,9 @@ public class HdfsOutput {
     private static final String NAMED_OUTPUT_BASE_KEY = "ethier.alex.world.mapreduce.hdfs.named.output";
 
     private MultipleOutputs mos;
-    private Context context;
+    private TaskInputOutputContext context;
 
-    public HdfsOutput(Context myContext) {
+    public HdfsOutput(TaskInputOutputContext myContext) {
 
         mos = new MultipleOutputs(myContext);
         context = myContext;
