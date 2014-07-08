@@ -4,30 +4,34 @@
  */
 package ethier.alex.world.mapreduce;
 
+import com.google.common.base.Stopwatch;
 import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.addon.FilterListBuilder;
 import ethier.alex.world.addon.PartitionBuilder;
-import ethier.alex.world.core.data.ElementList;
-import ethier.alex.world.core.data.FilterList;
-import ethier.alex.world.core.data.Partition;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.StringWriter;
+import ethier.alex.world.core.data.*;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
+//import org.junit.Assert;
 
 /**
 
  @author alex
  */
 public class TestDriver {
+    
+    private static Logger logger = Logger.getLogger(TestDriver.class);
 
     public static void main(String[] args) throws Exception {
         TestDriver testDriver = new TestDriver();
@@ -91,6 +95,9 @@ public class TestDriver {
             System.out.println("********************************************");
             System.out.println("");
             System.out.println("");
+            
+            Stopwatch stopWatch =  new Stopwatch();
+            stopWatch.start();
 
             //This is testing the complement done by creating an arbitrary set of allowed combinations
             //Then creating filters out of them, applying and getting the new set of combinations (which is the complement)
@@ -99,10 +106,10 @@ public class TestDriver {
             //Note the complement is a great way to determine the efficiency of the algorithm.
 
 
-            int ones = 9;
-            int worldLength = 18;
-//            int ones = 2;
-//            int worldLength = 4;
+            int ones = 10;
+            int worldLength = 20;
+//            int ones = 5;
+//            int worldLength = 10;
 
             Collection<FilterList> filters = new ArrayList<FilterList>();
             int[] radices = new int[worldLength];
@@ -146,16 +153,22 @@ public class TestDriver {
         conf.set("mapred.max.split.size", "5000000");
         conf.set(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY, "" + 10000);
         int ret = 0;
-//        ret = ToolRunner.run(conf, worldRunner, args);//args must be passed in from shell.
+        ret = ToolRunner.run(conf, worldRunner, args);//args must be passed in from shell.
         
         if(ret != 0) {
             throw new RuntimeException("Tool Runner failed.");
         }
         
         String serializedResultPath = "/world/results";
-        ResultExportRunner resultExportRunner = new ResultExportRunner("/world", new Path(completedPartitionsOutput), new Path(serializedResultPath));
+        logger.info("Running result export tool runner.");
+        ResultExportRunner resultExportRunner = new ResultExportRunner(new Path(completedPartitionsOutput), serializedResultPath, "/world/defaultOutput");
         ret = ToolRunner.run(conf, resultExportRunner, args);
-        System.exit(ret);
+        
+        if(ret != 0) {
+            throw new RuntimeException("Tool Runner failed.");
+        }
+        
+//        logger.info("Output result should be at: " + serializedResultPath);
         
         FileSystem fileSystem = FileSystem.get(conf);
         FSDataInputStream inputStream = fileSystem.open(new Path(serializedResultPath));
@@ -163,9 +176,120 @@ public class TestDriver {
         IOUtils.copy(inputStream, writer, "UTF-8");
         String raw = writer.toString();
         Collection<byte[]> bytes = CollectionByteSerializer.toBytes(raw);
+        logger.info("Collection size: " + bytes.size());
+        Collection<ElementList> resultElements = new ArrayList<ElementList>();
+        for(byte[] byteArray : bytes) {
+            ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
+            DataInput dataInput = new DataInputStream(bais);
+            ElementList elementList = new ElementList(dataInput);
+//            logger.info("Retreived element list: " + elementList.toString());
+            resultElements.add(elementList);
+        }
+
+        // Now convert elements into complements.
+        logger.info("Processing complements!");
+        Collection<FilterList> complementFilters = generateComplementFilters(resultElements);
+
+        Partition complementPartition = PartitionBuilder.newInstance()
+                .setRadices(radices)
+                .setBlankWorld()
+                .addFilters(complementFilters)
+                .getPartition();
         
-        //Load datainput with bytes then in a loop create the element lists.
-//        DataInput dataInput = new DataInputStream(bytes.);
-//        ElementList elementList = new ElementList(dataInput);
+        String complementPartitionsOutput = "/world/complementCompleted/";
+        WorldRunner complementWorldRunner = new WorldRunner(complementPartition, "/world", complementPartitionsOutput);
+        
+//        Configuration complementConf = new Configuration();
+//        conf.set("mapred.max.split.size", "5000000");
+//        conf.set(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY, "" + 10000);
+        
+
+        ret = ToolRunner.run(conf, complementWorldRunner, args);//args must be passed in from shell.
+        if(ret != 0) {
+            throw new RuntimeException("Tool Runner failed.");
+        }
+        
+        String complementSerializedResultPath = "/world/complementResults";
+        ResultExportRunner complementResultExportRunner = new ResultExportRunner(new Path(complementPartitionsOutput), complementSerializedResultPath, "/world/defaultOutput");
+        ret = ToolRunner.run(conf, complementResultExportRunner, args);
+        
+        if(ret != 0) {
+            throw new RuntimeException("Tool Runner failed.");
+        }
+        
+//        logger.info("Output result should be at: " + serializedResultPath);
+        
+        inputStream = fileSystem.open(new Path(complementSerializedResultPath));
+        writer = new StringWriter();
+        IOUtils.copy(inputStream, writer, "UTF-8");
+        raw = writer.toString();
+        bytes = CollectionByteSerializer.toBytes(raw);
+        logger.info("Collection size: " + bytes.size());
+        Collection<ElementList> complementResultElements = new ArrayList<ElementList>();
+        for(byte[] byteArray : bytes) {
+            ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
+            DataInput dataInput = new DataInputStream(bais);
+            ElementList elementList = new ElementList(dataInput);
+//            logger.info("Retreived element list: " + elementList.toString());
+            complementResultElements.add(elementList);
+        }
+        
+        Set<String> outputSet = new HashSet<String>();
+        for(ElementList origList : complementResultElements) {
+//                logger.debug(origList);
+
+            String enumStr = origList.toString();
+            int numOnes = StringUtils.countMatches(enumStr, "1");
+            assertTrue(numOnes == ones);
+
+            assertTrue(!outputSet.contains(enumStr));
+            outputSet.add(enumStr);
+        }
+
+        int expectedCombinations = (int) MathUtils.binomialCoefficient(worldLength, ones);  
+        assertTrue(expectedCombinations == outputSet.size());
+     
+        stopWatch.stop();
+        int secondsRun = (int) stopWatch.elapsedTime(TimeUnit.SECONDS);
+        
+        logger.info(outputSet.size() + " complements found and reverted in " + secondsRun + " seconds");
+    }
+    
+        public Collection<FilterList> generateComplementFilters(Collection<ElementList> elements) {
+        
+        Collection<FilterList> complementFilters = new ArrayList<FilterList>();
+        for(ElementList resultCombination : elements) {
+            logger.debug(resultCombination);
+            int[] resultOrdinals = resultCombination.getOrdinals();
+
+            Enum[] resultElementStates = resultCombination.getElementStates();
+            FilterState[] complementFilterStates = new FilterState[resultElementStates.length];
+            for(int i=0; i < resultElementStates.length; i++) {
+                if(resultElementStates[i] == ElementState.ALL) {
+                    complementFilterStates[i] = FilterState.ALL;
+                } else if(resultElementStates[i] == ElementState.SET){
+                    complementFilterStates[i] = FilterState.ONE;
+                } else {
+                    throw new RuntimeException("Invalid state reached.");
+                }                    
+            }
+
+            FilterList complementFilter = FilterListBuilder.newInstance()
+                    .setOrdinals(resultOrdinals)
+                    .setFilterStates(complementFilterStates)
+                    .getFilterList();
+
+            complementFilters.add(complementFilter);                            
+        }
+        
+        return complementFilters;
+    }
+        
+    public void assertTrue(boolean bool) {
+        if(bool == true) {
+            return;
+        } else {
+            throw new RuntimeException("Assertion Failed.");
+        }
     }
 }

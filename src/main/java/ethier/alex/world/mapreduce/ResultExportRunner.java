@@ -27,12 +27,14 @@ public class ResultExportRunner extends Configured implements Tool {
 
     private static Logger logger = Logger.getLogger(ResultExportRunner.class);
     
-    public static final String RESULT_NAMED_OUTPUT = "results";
+//    public static final String RESULT_NAMED_OUTPUT = "results";
+    public static final String RESULT_OUTPUT_KEY = "ethier.alex.world.mapreduce.result.output.path";
+    
     private Path elementListPath;
     private String workDirectory;
-    private Path outputPath;
+    private String outputPath;
 
-    public ResultExportRunner(String workingDirectory, Path myElementListPath, Path myOutputPath) {
+    public ResultExportRunner(Path myElementListPath, String myOutputPath, String workingDirectory) {
         elementListPath = myElementListPath;
         workDirectory = workingDirectory;
         outputPath = myOutputPath;
@@ -52,6 +54,8 @@ public class ResultExportRunner extends Configured implements Tool {
         logger.info("Setting max number of attempts to 1.");
         jobConf.setJarByClass(this.getClass());
         jobConf.setMaxReduceAttempts(1);
+        
+        jobConf.set(RESULT_OUTPUT_KEY, outputPath);
 
 
         Job job = new Job(jobConf);
@@ -70,10 +74,11 @@ public class ResultExportRunner extends Configured implements Tool {
         logger.info("Reading input at [" + elementListPath.toString() + "]");
 
         LazyOutputFormat.setOutputFormatClass(job, SequenceFileOutputFormat.class);
-        SequenceFileOutputFormat.setOutputPath(job, outputPath);
+        SequenceFileOutputFormat.setOutputPath(job, new Path(workDirectory));
         
         FileSystem fileSystem = FileSystem.get(jobConf);
-        fileSystem.delete(outputPath, true);
+        fileSystem.delete(new Path(outputPath), true);
+        fileSystem.delete(new Path(workDirectory), true);
 //        HdfsOutput.setupDefaultOutput(job, new JobC(workDirectory + "/defaultOutput"));
 //        HdfsOutput.addNamedOutput(job, RESULT_NAMED_OUTPUT, workDirectory + "/results", FileOutputFormat.class, Text.class, Text.class);
 
