@@ -17,4 +17,4 @@ export HADOOP_CLASSPATH=/etc/hadoop/conf:$HADOOP_CLASSPATH
 LIB_JARS=`echo ${HADOOP_CLASSPATH} | sed -e "s/:/,/g"`
 
 export HADOOP_CLIENT_OPTS="-Xmx2g $HADOOP_CLIENT_OPTS"
-hadoop jar ${MAIN_JAR} ethier.alex.world.mapreduce.TestDriver -libjars ${LIB_JARS}
+hadoop jar ${MAIN_JAR} ethier.alex.world.mapreduce.addon.TestProcessor -libjars ${LIB_JARS}

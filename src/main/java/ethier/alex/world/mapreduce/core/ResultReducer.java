@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce;
+package ethier.alex.world.mapreduce.core;
 
+import ethier.alex.world.mapreduce.data.ElementListWritable;
 import ethier.alex.world.addon.CollectionByteSerializer;
 import java.io.*;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text
     
 //    private HdfsOutput outputWriter;
     
-            @Override
+        @Override
         protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context)
                 throws IOException, InterruptedException {
 //            outputWriter = new HdfsOutput(context);

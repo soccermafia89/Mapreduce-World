@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce;
+package ethier.alex.world.mapreduce.data;
 
 import ethier.alex.world.core.data.ElementList;
 import java.io.DataInput;

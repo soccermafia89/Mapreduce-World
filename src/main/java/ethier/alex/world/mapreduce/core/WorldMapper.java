@@ -2,10 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce;
+package ethier.alex.world.mapreduce.core;
 
+import ethier.alex.world.mapreduce.data.ElementListWritable;
+import ethier.alex.world.mapreduce.data.PartitionWritable;
 import ethier.alex.world.core.data.ElementList;
 import ethier.alex.world.core.data.Partition;
+import ethier.alex.world.core.processor.Processor;
 import ethier.alex.world.core.processor.SimpleProcessor;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +53,7 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
         int processedPartitions = 0;
         while(incompletePartitions.size() < initialRunNumber && incompletePartitions.size() > 0) {
             
-            SimpleProcessor simpleProcessor = new SimpleProcessor(incompletePartitions);
+            Processor simpleProcessor = new SimpleProcessor(incompletePartitions);
             logger.info("Running set over: " + incompletePartitions.size() + " partitions.");
             processedPartitions += incompletePartitions.size();
             

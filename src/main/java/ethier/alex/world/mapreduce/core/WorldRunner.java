@@ -2,10 +2,14 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce;
+package ethier.alex.world.mapreduce.core;
 
+import ethier.alex.world.mapreduce.data.ElementListWritable;
+import ethier.alex.world.mapreduce.data.PartitionWritable;
 import ethier.alex.world.core.data.Partition;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -32,21 +36,24 @@ public class WorldRunner extends Configured implements Tool {
     public static final String WORK_DIRECTORY_KEY = "ethier.alex.world.mapreduce.work.directory";
     public static final String INCOMPLETE_PARTITION_NAMED_OUTPUT = "incomplete";
     public static final String COMPLETE_PARTITION_NAMED_OUTPUT = "complete";
-    private String workDirectory;
-    private String outputPath;
-    private Path rootPartitionPath;
-    private Partition rootPartition;
-//    private int runCounter;
-//    private Path inputPath;
+//    private Path rootPartitionPath;
+    private String baseDirectory;
+    private Collection<Partition> initialPartitions;
     public static final String RUN_INTITIAL_PARTITIONS_KEY = "ethier.alex.world.mapreduce.intial.partitions";
 
-    public WorldRunner(Partition myPartition, String workingDirectory, String myOutputPath) {
-//        runCounter = 0;
-        rootPartition = myPartition;
+    public WorldRunner(Partition myPartition, String myBaseDirectory) {
+        initialPartitions = new ArrayList<Partition>();
+        initialPartitions.add(myPartition);
+        baseDirectory = myBaseDirectory;
+        
+        logger.info("HDFS Base directory set to: " + baseDirectory);   
+    }
+    
+    public WorldRunner(Collection<Partition> myPartitions, String myBaseDirectory) {
+        initialPartitions = myPartitions;
+        baseDirectory = myBaseDirectory;
 
-        workDirectory = workingDirectory;
-        outputPath = myOutputPath;
-        logger.info("HDFS Work directory set to: " + workDirectory);
+        logger.info("HDFS Work directory set to: " + baseDirectory);
     }
 
 //    public void validateProperties(Properties props) {
@@ -73,7 +80,7 @@ public class WorldRunner extends Configured implements Tool {
 
         this.writeRootPartition();
 
-        Path inputPath = new Path(rootPartitionPath.getParent().toString() + "/root");
+        Path inputPath = new Path(baseDirectory + "/root");
         int runCounter = 0;
         JobConf jobConf = null;
 
@@ -99,11 +106,9 @@ public class WorldRunner extends Configured implements Tool {
             logger.info("Reading input at [" + SequenceFileInputFormat.getInputPaths(job)[0].toString() + "]");
 
             LazyOutputFormat.setOutputFormatClass(job, SequenceFileOutputFormat.class);
-            HdfsOutput.setupDefaultOutput(job, new Path(workDirectory + "/defaultOutput"));
-            HdfsOutput.addNamedOutput(job, INCOMPLETE_PARTITION_NAMED_OUTPUT, workDirectory + "/incomplete", SequenceFileOutputFormat.class, Text.class, PartitionWritable.class);
-            HdfsOutput.addNamedOutput(job, COMPLETE_PARTITION_NAMED_OUTPUT, outputPath, SequenceFileOutputFormat.class, Text.class, ElementListWritable.class);
-
-            HdfsOutput.clearNamedOutputs(jobConf);
+            HdfsOutput.setupDefaultOutput(job, new Path(baseDirectory + "/default"));
+            HdfsOutput.addNamedOutput(job, INCOMPLETE_PARTITION_NAMED_OUTPUT, baseDirectory + "/outputIncomplete", SequenceFileOutputFormat.class, Text.class, PartitionWritable.class);
+            HdfsOutput.addNamedOutput(job, COMPLETE_PARTITION_NAMED_OUTPUT, baseDirectory + "/completed", SequenceFileOutputFormat.class, Text.class, ElementListWritable.class);
 
             int success = job.waitForCompletion(true) ? 0 : 1;
 
@@ -117,12 +122,14 @@ public class WorldRunner extends Configured implements Tool {
                 break;
             }
 
-            String incompletePartitionsPath = HdfsOutput.getNamedOutputPath(job, INCOMPLETE_PARTITION_NAMED_OUTPUT);
-            inputPath = new Path(workDirectory + "/input/");
+//            String incompletePartitionsPath = HdfsOutput.getNamedOutputPath(job, INCOMPLETE_PARTITION_NAMED_OUTPUT);
+            inputPath = new Path(baseDirectory + "/inputIncomplete");
             FileSystem fileSystem = FileSystem.get(jobConf);
             fileSystem.delete(inputPath, true);
             logger.info("Moving incomplete partitions back to input.");
-            fileSystem.rename(new Path(incompletePartitionsPath), inputPath);
+            fileSystem.rename(new Path(baseDirectory + "/outputIncomplete"), inputPath);
+
+//            HdfsOutput.clearNamedOutputs(jobConf);
 
             runCounter++;
         }
@@ -137,7 +144,9 @@ public class WorldRunner extends Configured implements Tool {
     }
 
     public void writeRootPartition() throws IOException {
-        rootPartitionPath = new Path(workDirectory + "/root");
+        
+        Path rootPartitionPath = new Path(baseDirectory + "/root");
+        logger.info("Writing root partition to [" + rootPartitionPath.toString() + "]");
 
         JobConf jobRootConf = new JobConf();
         FileSystem fileSystem = FileSystem.get(jobRootConf);
@@ -147,7 +156,9 @@ public class WorldRunner extends Configured implements Tool {
         SequenceFile.Writer.Option optKey = SequenceFile.Writer.keyClass(Text.class);
         SequenceFile.Writer.Option optVal = SequenceFile.Writer.valueClass(PartitionWritable.class);
         SequenceFile.Writer writer = SequenceFile.createWriter(jobRootConf, optPath, optKey, optVal);
-        writer.append(new Text(rootPartition.printElements()), new PartitionWritable(rootPartition));
+        for(Partition initialPartition : initialPartitions) {
+                writer.append(new Text("Partition"), new PartitionWritable(initialPartition));
+        }
         writer.close();
     }
 }

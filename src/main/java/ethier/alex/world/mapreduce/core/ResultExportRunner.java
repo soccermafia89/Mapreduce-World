@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce;
+package ethier.alex.world.mapreduce.core;
 
+import ethier.alex.world.mapreduce.data.ElementListWritable;
 import ethier.alex.world.core.data.ElementList;
 import java.util.Collection;
 import org.apache.hadoop.conf.Configured;
