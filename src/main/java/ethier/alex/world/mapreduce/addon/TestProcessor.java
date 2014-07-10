@@ -5,28 +5,19 @@
 package ethier.alex.world.mapreduce.addon;
 
 import com.google.common.base.Stopwatch;
-import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.addon.FilterListBuilder;
 import ethier.alex.world.addon.PartitionBuilder;
 import ethier.alex.world.core.data.*;
-import ethier.alex.world.mapreduce.core.ResultExportRunner;
 import ethier.alex.world.mapreduce.core.WorldRunner;
 import ethier.alex.world.mapreduce.processor.DistributedProcessor;
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
 /**
@@ -73,38 +64,12 @@ public class TestProcessor {
         int ones = 8;
         int worldLength = 16;
 
-        Collection<FilterList> filters = new ArrayList<FilterList>();
         int[] radices = new int[worldLength];
-
-        String breakStr = "";
         for (int i = 0; i < worldLength; i++) {
-            breakStr += '1';
             radices[i] = 2;
         }
 
-        String filterStr = "";
-        int count = 0;
-        while (!filterStr.equals(breakStr)) {
-
-            filterStr = "" + Integer.toBinaryString(count);
-            filterStr = StringUtils.leftPad(filterStr, worldLength, '0');
-            int combOnes = StringUtils.countMatches(filterStr, "1");
-            if (combOnes == ones) {
-                FilterList filter = FilterListBuilder.newInstance().setQuick(filterStr).getFilterList();
-
-//                    logger.debug("Adding filter: " + filter);
-                filters.add(filter);
-            }
-
-
-            count++;
-        }
-
-        Partition rootPartition = PartitionBuilder.newInstance()
-                .setBlankWorld()
-                .setRadices(radices)
-                .addFilters(filters)
-                .getPartition();
+        Partition rootPartition = generateBinomialPartition(ones, worldLength);
         
         Configuration conf = new Configuration();
         conf.set("mapred.max.split.size", "5000000");
@@ -151,8 +116,43 @@ public class TestProcessor {
 
         logger.info(outputSet.size() + " complements found and reverted in " + secondsRun + " seconds");
     }
+    
+    public static Partition generateBinomialPartition(int ones, int worldLength) {
+        Collection<FilterList> filters = new ArrayList<FilterList>();
+        int[] radices = new int[worldLength];
 
-    public Collection<FilterList> generateComplementFilters(Collection<ElementList> elements) {
+        String breakStr = "";
+        for (int i = 0; i < worldLength; i++) {
+            breakStr += '1';
+            radices[i] = 2;
+        }
+
+        String filterStr = "";
+        int count = 0;
+        while (!filterStr.equals(breakStr)) {
+
+            filterStr = "" + Integer.toBinaryString(count);
+            filterStr = StringUtils.leftPad(filterStr, worldLength, '0');
+            int combOnes = StringUtils.countMatches(filterStr, "1");
+            if (combOnes == ones) {
+                FilterList filter = FilterListBuilder.newInstance().setQuick(filterStr).getFilterList();
+
+//                    logger.debug("Adding filter: " + filter);
+                filters.add(filter);
+            }
+
+
+            count++;
+        }
+
+        return PartitionBuilder.newInstance()
+                .setBlankWorld()
+                .setRadices(radices)
+                .addFilters(filters)
+                .getPartition();
+    }
+
+    public static Collection<FilterList> generateComplementFilters(Collection<ElementList> elements) {
 
         Collection<FilterList> complementFilters = new ArrayList<FilterList>();
         for (ElementList resultCombination : elements) {

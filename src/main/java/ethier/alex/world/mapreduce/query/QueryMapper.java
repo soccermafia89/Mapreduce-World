@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce.core;
+package ethier.alex.world.mapreduce.query;
 
+import ethier.alex.world.mapreduce.query.QueryRunner;
 import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.core.data.*;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
@@ -53,6 +54,7 @@ public class QueryMapper extends Mapper<Text, ElementListWritable, Text, Writabl
     public Collection<FilterList> readFilters(Context context) throws IOException, DecoderException {
 
         String filterPath = context.getConfiguration().get(QueryRunner.FILTER_INPUT_PATH_KEY);
+        logger.info("Reading filters from: " + context.getConfiguration().get(QueryRunner.FILTER_INPUT_PATH_KEY));
 
         FileSystem fileSystem = FileSystem.get(context.getConfiguration());
         FSDataInputStream inputStream = fileSystem.open(new Path(filterPath));
@@ -66,7 +68,7 @@ public class QueryMapper extends Mapper<Text, ElementListWritable, Text, Writabl
             ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
             DataInput dataInput = new DataInputStream(bais);
             FilterList filter = new FilterList(dataInput);
-//            logger.info("Retreived element list: " + elementList.toString());
+            logger.info("Retreived filter: " + filter.toString());
             inputFilters.add(filter);
         }
 
@@ -79,6 +81,7 @@ public class QueryMapper extends Mapper<Text, ElementListWritable, Text, Writabl
         ElementList elementList = value.getElementList();
         
         BigDecimal weightedMatch = this.getWeightedMatch(filters, elementList);
+        logger.info("Element List: " + elementList + " has weight: " + weightedMatch.toPlainString());
         context.write(key, new BigDecimalWritable(weightedMatch));
     }
 

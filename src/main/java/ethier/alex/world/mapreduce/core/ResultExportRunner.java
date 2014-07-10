@@ -32,17 +32,13 @@ public class ResultExportRunner extends Configured implements Tool {
     public static final String RESULT_OUTPUT_KEY = "ethier.alex.world.mapreduce.result.output.path";
     
     private Path elementListPath;
-    private String workDirectory;
+    private String tmpDirectory;
     private String outputPath;
 
-    public ResultExportRunner(Path myElementListPath, String myOutputPath, String workingDirectory) {
+    public ResultExportRunner(Path myElementListPath, String myOutputPath, String myTmpDirectory) {
         elementListPath = myElementListPath;
-        workDirectory = workingDirectory;
+        tmpDirectory = myTmpDirectory;
         outputPath = myOutputPath;
-    }
-
-    public Collection<ElementList> getCompletedPartitions() {
-        return null;
     }
 
     @Override
@@ -75,11 +71,11 @@ public class ResultExportRunner extends Configured implements Tool {
         logger.info("Reading input at [" + elementListPath.toString() + "]");
 
         LazyOutputFormat.setOutputFormatClass(job, SequenceFileOutputFormat.class);
-        SequenceFileOutputFormat.setOutputPath(job, new Path(workDirectory));
+        SequenceFileOutputFormat.setOutputPath(job, new Path(tmpDirectory));
         
         FileSystem fileSystem = FileSystem.get(jobConf);
         fileSystem.delete(new Path(outputPath), true);
-        fileSystem.delete(new Path(workDirectory), true);
+        fileSystem.delete(new Path(tmpDirectory), true);
 //        HdfsOutput.setupDefaultOutput(job, new JobC(workDirectory + "/defaultOutput"));
 //        HdfsOutput.addNamedOutput(job, RESULT_NAMED_OUTPUT, workDirectory + "/results", FileOutputFormat.class, Text.class, Text.class);
 

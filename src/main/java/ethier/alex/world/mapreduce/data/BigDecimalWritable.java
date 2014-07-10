@@ -33,6 +33,10 @@ public class BigDecimalWritable implements Writable {
     public BigDecimalWritable(BigDecimal myBigDecimal) {
         bigDecimal = myBigDecimal;
     }
+    
+    public BigDecimal getBigDecimal() {
+        return bigDecimal;
+    }
 
     @Override
     public void write(DataOutput out) throws IOException {

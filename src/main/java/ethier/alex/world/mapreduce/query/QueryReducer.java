@@ -2,11 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce.core;
+package ethier.alex.world.mapreduce.query;
 
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
-import ethier.alex.world.mapreduce.data.ElementListWritable;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Iterator;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -16,13 +17,15 @@ import org.apache.log4j.Logger;
 
  @author alex
  */
-public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, Text> {
+public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDecimalWritable> {
         
     private static Logger logger = Logger.getLogger(QueryReducer.class);
+    BigDecimal worldSize;
     
     @Override
     protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context) {
 
+        worldSize = new BigDecimal(context.getConfiguration().get(QueryRunner.WORLD_SIZE_KEY));
         logger.info("Reducer setup finished.");
     }
 
@@ -36,6 +39,15 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, Text> 
     protected void reduce(Text key, Iterable<BigDecimalWritable> values, Context context) throws IOException, InterruptedException {
         logger.info("Reducing Key: " + key.toString());
 
-        logger.info("TODO");
+        Iterator<BigDecimalWritable> it = values.iterator();
+        BigDecimal sum = new BigDecimal(0L);
+        while(it.hasNext()) {
+            BigDecimal weight = it.next().getBigDecimal();
+            sum = sum.add(weight);
+        }
+        
+        BigDecimal probability = sum.divide(worldSize, 10, RoundingMode.UP);
+        
+        context.write(key, new BigDecimalWritable(probability));
     }
 }
