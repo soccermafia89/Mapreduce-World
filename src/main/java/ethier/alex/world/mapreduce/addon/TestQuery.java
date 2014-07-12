@@ -45,9 +45,9 @@ public class TestQuery {
         conf.set(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY, "" + 10000);
         
         logger.info("TMP DISABLED DISTRIBUTED PROCESSOR.");
-//        logger.info("Running distributed processor.");
-//        Processor distributedProcessor = new DistributedProcessor(rootPartition, "/world", conf, args);
-//        distributedProcessor.runAll();
+        logger.info("Running distributed processor.");
+        Processor distributedProcessor = new DistributedProcessor(rootPartition, "/world", conf, args);
+        distributedProcessor.runAll();
         
         logger.info("Running World Size Runner.");
         WorldSizeRunner worldSizeRunner = new WorldSizeRunner("/world/completed/", "/world/default", rootPartition.getRadices());

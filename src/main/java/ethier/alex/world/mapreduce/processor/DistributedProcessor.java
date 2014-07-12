@@ -69,25 +69,9 @@ public class DistributedProcessor implements Processor {
 
                 if(ret != 0) {
                     throw new RuntimeException("Tool Runner failed.");
+                } else {
+                    return resultExportRunner.getCompletedPartitions();
                 }
-
-                FileSystem fileSystem = FileSystem.get(conf);
-                FSDataInputStream inputStream = fileSystem.open(new Path(baseDirectory + "/results"));
-                StringWriter writer = new StringWriter();
-                IOUtils.copy(inputStream, writer, "UTF-8");
-                String raw = writer.toString();
-                Collection<byte[]> bytes = CollectionByteSerializer.toBytes(raw);
-//                logger.info("Collection size: " + bytes.size());
-                Collection<ElementList> resultElements = new ArrayList<ElementList>();
-                for(byte[] byteArray : bytes) {
-                    ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
-                    DataInput dataInput = new DataInputStream(bais);
-                    ElementList elementList = new ElementList(dataInput);
-        //            logger.info("Retreived element list: " + elementList.toString());
-                    resultElements.add(elementList);
-                }
-                
-                return resultElements;
             } catch (Exception e) {
                 throw new RuntimeException("Unable to export parititons.  Caused by: " + ExceptionUtils.getFullStackTrace(e));
             }

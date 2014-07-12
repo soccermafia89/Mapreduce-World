@@ -6,6 +6,7 @@ package ethier.alex.world.mapreduce.core;
 
 import ethier.alex.world.mapreduce.data.ElementListWritable;
 import ethier.alex.world.addon.CollectionByteSerializer;
+import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
 public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text>  {
     
     private static Logger logger = Logger.getLogger(ResultReducer.class);
-    Path outputPath;
+//    Path outputPath;
     
 //    private HdfsOutput outputWriter;
     
@@ -33,7 +34,7 @@ public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text
         protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context)
                 throws IOException, InterruptedException {
 //            outputWriter = new HdfsOutput(context);
-            outputPath = new Path(context.getConfiguration().get(ResultExportRunner.RESULT_OUTPUT_KEY));
+//            outputPath = new Path(context.getConfiguration().get(ResultExportRunner.RESULT_OUTPUT_KEY));
             logger.info("Reducer setup finished.");
         }
 
@@ -62,10 +63,11 @@ public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text
                 byteCollection.add(serializedElementList);
             }
             
-            FileSystem fileSystem = FileSystem.get(context.getConfiguration());
-            FSDataOutputStream outStream = fileSystem.create(outputPath);
+//            FileSystem fileSystem = FileSystem.get(context.getConfiguration());
+//            FSDataOutputStream outStream = fileSystem.create(outputPath);
             String serializedResults = CollectionByteSerializer.toString(byteCollection);
-            outStream.write(serializedResults.getBytes());         
-            outStream.close();            
+            HdfsMemoryManager.setString(ResultExportRunner.RESULT_NAMED_OUTPUT, serializedResults, context.getConfiguration());
+//            outStream.write(serializedResults.getBytes());         
+//            outStream.close();            
         }
 }
