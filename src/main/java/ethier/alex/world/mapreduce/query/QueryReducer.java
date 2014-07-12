@@ -4,7 +4,7 @@
  */
 package ethier.alex.world.mapreduce.query;
 
-import ethier.alex.world.mapreduce.core.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import java.io.IOException;
 import java.math.BigDecimal;

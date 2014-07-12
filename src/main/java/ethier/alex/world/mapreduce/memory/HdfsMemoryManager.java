@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ethier.alex.world.mapreduce.core;
+package ethier.alex.world.mapreduce.memory;
 
+import ethier.alex.world.mapreduce.memory.MemoryToken;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -25,11 +26,20 @@ import org.apache.log4j.Logger;
 // NOTE: Due to the way hadoop's garbage collector works, a connection should never be opened within a task.
 // This is why the openConnection requires a Job input instead of a Configuration input.
 public class HdfsMemoryManager {
+    
+    private MemoryToken memoryToken;
 
     private static Logger logger = Logger.getLogger(HdfsMemoryManager.class);
     public static final String MEMORY_MANAGER_CONF_ID_KEY = "ethier.alex.world.mapreduce.core.memory.manager.id";
+    
+    public HdfsMemoryManager() {
+    }
+    
+    public MemoryToken getMemoryToken() {
+        return memoryToken;
+    }
 
-    public static MemoryToken openConnection(Configuration conf) throws IOException {
+    public Configuration openConnection(Configuration conf) throws IOException {
         FileSystem fileSystem = FileSystem.get(conf);
 
         String presetConfId = conf.get(MEMORY_MANAGER_CONF_ID_KEY);
@@ -43,13 +53,14 @@ public class HdfsMemoryManager {
             }
             fileSystem.mkdirs(new Path("/MemoryManager/" + confId));
         }
-
-        return new MemoryToken(conf);
+        
+        memoryToken = new MemoryToken(conf);
+        
+        return conf;
     }
 
     //Main methods
     public static void setString(String name, String output, Configuration conf) throws IOException {
-        
 
         Path writePath = HdfsMemoryManager.getMemoryPath(name, conf);
         
@@ -77,7 +88,7 @@ public class HdfsMemoryManager {
         String confId = conf.get(MEMORY_MANAGER_CONF_ID_KEY);
         if(confId == null || confId.isEmpty()) {
             throw new RuntimeException("Connection never opened for Configuraton object.  "
-                    + "Call HdfsMemoryManager.openConnection first, before Job creation.");
+                    + "Use MemoryJob to properly open connections in Configuration object.");
         }
         
         return new Path("/MemoryManager/" + confId + "/names/" + name);

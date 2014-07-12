@@ -4,8 +4,9 @@
  */
 package ethier.alex.world.mapreduce.query;
 
-import ethier.alex.world.mapreduce.core.HdfsMemoryManager;
-import ethier.alex.world.mapreduce.core.MemoryToken;
+import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.memory.MemoryJob;
+import ethier.alex.world.mapreduce.memory.MemoryToken;
 import ethier.alex.world.mapreduce.core.WorldMapper;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import org.apache.hadoop.conf.Configuration;
@@ -62,7 +63,7 @@ public class WorldSizeRunner extends Configured implements Tool  {
             conf.setJarByClass(this.getClass());
 
 
-            Job job = new Job(conf);
+            MemoryJob job = new MemoryJob(conf);
 
             job.setJobName(this.getClass().getName());
             job.setMapperClass(WorldSizeMapper.class);
@@ -78,9 +79,8 @@ public class WorldSizeRunner extends Configured implements Tool  {
             
             FileSystem fileSystem = FileSystem.get(conf);
             fileSystem.delete(new Path(tmpDirectory), true);
-            
+            MemoryToken memoryToken = job.openConnection();
 //            HdfsMemoryManager manager = HdfsMemoryManager.openManager(job.getConfiguration());
-            MemoryToken memoryToken = HdfsMemoryManager.openConnection(job);
             
             int ret = job.waitForCompletion(true) ? 0 : 1;
             

@@ -6,8 +6,9 @@ package ethier.alex.world.mapreduce.query;
 
 import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.core.data.FilterList;
-import ethier.alex.world.mapreduce.core.HdfsMemoryManager;
-import ethier.alex.world.mapreduce.core.MemoryToken;
+import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.memory.MemoryJob;
+import ethier.alex.world.mapreduce.memory.MemoryToken;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
@@ -86,8 +87,8 @@ public class QueryRunner extends Configured implements Tool {
         jobConf.setJarByClass(this.getClass());
 //
 //
-        Job job = new Job(jobConf);
-        MemoryToken memoryToken = HdfsMemoryManager.openConnection(job);
+//        jobConf.
+        Job job = new MemoryJob(jobConf);
 
         job.setJobName(this.getClass().getName());
         job.setMapperClass(QueryMapper.class);
@@ -107,9 +108,8 @@ public class QueryRunner extends Configured implements Tool {
         FileSystem fileSystem = FileSystem.get(conf);
         fileSystem.delete(new Path(baseDirectory + "/query"), true);
         
-        HdfsMemoryManager.setString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, worldSize, conf);
+        HdfsMemoryManager.setString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, worldSize, job.getConfiguration());
         int ret = job.waitForCompletion(true) ? 0 : 1;
-        memoryToken.close();
         return ret;
     }
     
