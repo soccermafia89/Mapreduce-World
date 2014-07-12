@@ -33,7 +33,6 @@ public class WorldMapper extends Mapper<Text, PartitionWritable, Text, Writable>
 
     @Override
     protected void setup(Context context) {
-
         initialRunNumber = Integer.parseInt(context.getConfiguration().get(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY));
         
         int mapperId = context.getTaskAttemptID().getTaskID().getId();

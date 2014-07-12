@@ -6,12 +6,13 @@ package ethier.alex.world.mapreduce.query;
 
 import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.core.data.FilterList;
+import ethier.alex.world.mapreduce.core.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.core.MemoryToken;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
@@ -39,13 +40,15 @@ public class QueryRunner extends Configured implements Tool {
     
     public static final String FILTER_INPUT_PATH_KEY = "ethier.alex.world.mapreduce.query.filter.input";
     public static final String RADICES_KEY = "ethier.alex.world.mapreduce.query.radices";
-    public static final String WORLD_SIZE_KEY = "ethier.alex.world.mapreduce.query.world.size";
+//    public static final String WORLD_SIZE_KEY = "ethier.alex.world.mapreduce.query.world.size";
+//    public static final String QUERY_OUTPUT_NAME = "queryOutput";
     
     private Collection<FilterList> filters;
     private String elementListPath;
     private String baseDirectory;
     int[] radices;
     String worldSize;
+//    HdfsMemoryManager memoryManager;
     
     public QueryRunner(String myWorldSize, FilterList filter, String myElementListPath, int[] myRadices, String myBaseDirectory) {
         filters = new ArrayList<FilterList>();
@@ -70,8 +73,9 @@ public class QueryRunner extends Configured implements Tool {
         
         Configuration conf = getConf();
         conf.set(RADICES_KEY, QueryRunner.serializeRadices(radices));
-        conf.set(WORLD_SIZE_KEY, worldSize);
+//        conf.set(WORLD_SIZE_KEY, worldSize);
         conf.set(FILTER_INPUT_PATH_KEY, baseDirectory + "/filters");
+        
         
         JobConf jobConf = new JobConf(getConf());
 //        logger.info("Setting mapper memory to 1G");
@@ -83,6 +87,7 @@ public class QueryRunner extends Configured implements Tool {
 //
 //
         Job job = new Job(jobConf);
+        MemoryToken memoryToken = HdfsMemoryManager.openConnection(job);
 
         job.setJobName(this.getClass().getName());
         job.setMapperClass(QueryMapper.class);
@@ -101,8 +106,11 @@ public class QueryRunner extends Configured implements Tool {
         
         FileSystem fileSystem = FileSystem.get(conf);
         fileSystem.delete(new Path(baseDirectory + "/query"), true);
-//        
-        return job.waitForCompletion(true) ? 0 : 1;
+        
+        HdfsMemoryManager.setString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, worldSize, conf);
+        int ret = job.waitForCompletion(true) ? 0 : 1;
+        memoryToken.close();
+        return ret;
     }
     
     // This method does not belong here.

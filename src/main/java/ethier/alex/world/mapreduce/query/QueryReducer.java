@@ -4,6 +4,7 @@
  */
 package ethier.alex.world.mapreduce.query;
 
+import ethier.alex.world.mapreduce.core.HdfsMemoryManager;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -23,9 +24,10 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDec
     BigDecimal worldSize;
     
     @Override
-    protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context) {
+    protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context) throws IOException {
 
-        worldSize = new BigDecimal(context.getConfiguration().get(QueryRunner.WORLD_SIZE_KEY));
+        String worldSizeStr = HdfsMemoryManager.getString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, context.getConfiguration());
+        worldSize = new BigDecimal(worldSizeStr);
         logger.info("Reducer setup finished.");
     }
 
@@ -47,6 +49,10 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDec
         }
         
         BigDecimal probability = sum.divide(worldSize, 10, RoundingMode.UP);
+        
+//        JsonObject rootJson = new JsonObject();
+//        rootJson.add(key.toString(), probability.toPlainString());
+//        memoryManager.setString(QueryRunner.QUERY_OUTPUT_NAME, null);
         
         context.write(key, new BigDecimalWritable(probability));
     }
