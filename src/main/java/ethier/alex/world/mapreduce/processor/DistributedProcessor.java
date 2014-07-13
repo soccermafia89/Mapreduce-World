@@ -4,23 +4,15 @@
  */
 package ethier.alex.world.mapreduce.processor;
 
-import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.core.data.ElementList;
 import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.core.processor.Processor;
 import ethier.alex.world.mapreduce.core.ResultExportRunner;
 import ethier.alex.world.mapreduce.core.WorldRunner;
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
@@ -61,7 +53,7 @@ public class DistributedProcessor implements Processor {
         if(!hasRun) {
             return new ArrayList<ElementList>();
         } else {
-            ResultExportRunner resultExportRunner = new ResultExportRunner(new Path(baseDirectory + "/completed"), baseDirectory + "/results", baseDirectory + "/default");
+            ResultExportRunner resultExportRunner = new ResultExportRunner(new Path(baseDirectory + "/completed"), baseDirectory + "/default");
             
             int ret = -1;
             try {

@@ -8,8 +8,8 @@ import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.core.data.FilterList;
 import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
 import ethier.alex.world.mapreduce.memory.MemoryJob;
-import ethier.alex.world.mapreduce.memory.MemoryToken;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
+import ethier.alex.world.mapreduce.memory.MemoryToken;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -42,13 +42,14 @@ public class QueryRunner extends Configured implements Tool {
     public static final String FILTER_INPUT_PATH_KEY = "ethier.alex.world.mapreduce.query.filter.input";
     public static final String RADICES_KEY = "ethier.alex.world.mapreduce.query.radices";
 //    public static final String WORLD_SIZE_KEY = "ethier.alex.world.mapreduce.query.world.size";
-//    public static final String QUERY_OUTPUT_NAME = "queryOutput";
+    public static final String QUERY_NAMED_OUTPUT = "queryOutput";
     
     private Collection<FilterList> filters;
     private String elementListPath;
     private String baseDirectory;
     int[] radices;
     String worldSize;
+    private String probabilityOutput;
 //    HdfsMemoryManager memoryManager;
     
     public QueryRunner(String myWorldSize, FilterList filter, String myElementListPath, int[] myRadices, String myBaseDirectory) {
@@ -88,7 +89,7 @@ public class QueryRunner extends Configured implements Tool {
 //
 //
 //        jobConf.
-        Job job = new MemoryJob(jobConf);
+        MemoryJob job = new MemoryJob(jobConf);
 
         job.setJobName(this.getClass().getName());
         job.setMapperClass(QueryMapper.class);
@@ -108,9 +109,16 @@ public class QueryRunner extends Configured implements Tool {
         FileSystem fileSystem = FileSystem.get(conf);
         fileSystem.delete(new Path(baseDirectory + "/query"), true);
         
+        MemoryToken memoryToken = job.openConnection();
         HdfsMemoryManager.setString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, worldSize, job.getConfiguration());
         int ret = job.waitForCompletion(true) ? 0 : 1;
+        probabilityOutput = HdfsMemoryManager.getString(QUERY_NAMED_OUTPUT, job.getConfiguration());
+        memoryToken.close();
         return ret;
+    }
+    
+    public String getProbabilityOutput() {
+        return probabilityOutput;
     }
     
     // This method does not belong here.

@@ -50,9 +50,7 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDec
         
         BigDecimal probability = sum.divide(worldSize, 10, RoundingMode.UP);
                 
-//        JsonObject rootJson = new JsonObject();
-//        rootJson.add(key.toString(), probability.toPlainString());
-//        memoryManager.setString(QueryRunner.QUERY_OUTPUT_NAME, null);
+        HdfsMemoryManager.setString(QueryRunner.QUERY_NAMED_OUTPUT, probability.toPlainString(), context.getConfiguration());
         
         context.write(key, new BigDecimalWritable(probability));
     }

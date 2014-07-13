@@ -10,8 +10,11 @@ import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.core.processor.Processor;
 import ethier.alex.world.mapreduce.core.WorldRunner;
 import ethier.alex.world.mapreduce.processor.DistributedProcessor;
+import ethier.alex.world.mapreduce.query.DistributedQuery;
 import ethier.alex.world.mapreduce.query.QueryRunner;
 import ethier.alex.world.mapreduce.query.WorldSizeRunner;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
@@ -44,24 +47,15 @@ public class TestQuery {
         conf.set("mapred.max.split.size", "5000000");
         conf.set(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY, "" + 10000);
         
-        logger.info("TMP DISABLED DISTRIBUTED PROCESSOR.");
+//        logger.info("TMP DISABLED DISTRIBUTED PROCESSOR.");
         logger.info("Running distributed processor.");
         Processor distributedProcessor = new DistributedProcessor(rootPartition, "/world", conf, args);
         distributedProcessor.runAll();
         
-        logger.info("Running World Size Runner.");
-        WorldSizeRunner worldSizeRunner = new WorldSizeRunner("/world/completed/", "/world/default", rootPartition.getRadices());
-        int ret = ToolRunner.run(conf, worldSizeRunner, args);
-
-        if(ret != 0) {
-            throw new RuntimeException("Tool Runner failed.");
-        }
+        logger.info("Running Query.");
+        DistributedQuery distributedQuery = new DistributedQuery("/world", rootPartition.getRadices(), conf, args);
         
-//        logger.info("TMP EXIT SYSTEM!");
-//        System.exit(0);
-        
-        String worldSizeString = worldSizeRunner.getWorldSize();
-        logger.info("Exported world size: " + worldSizeString);
+        logger.info("World Size: " + distributedQuery.getWorldSize().toPlainString());
         
         String queryFilter = "1";
         for(int i=0; i < worldLength-1; i++) {
@@ -72,13 +66,24 @@ public class TestQuery {
                 .setQuick(queryFilter)
                 .getFilterList();
         
-        logger.info("Running query runner.");
-        QueryRunner queryRunner = new QueryRunner(worldSizeString, filterList, "/world/completed/", rootPartition.getRadices(), "/world");
-        ret = ToolRunner.run(conf, queryRunner, args);
-
-        if(ret != 0) {
-            throw new RuntimeException("Tool Runner failed.");
+        double queryValue = distributedQuery.query(filterList);
+        
+        logger.info("Query: " + filterList + " => " + queryValue);
+        queryFilter = "0";
+        for(int i=0; i < worldLength-1; i++) {
+            queryFilter += "*";
         }
+        FilterList filetList2 = FilterListBuilder.newInstance()
+                .setQuick(queryFilter)
+                .getFilterList();
+        
+        Collection<FilterList> aggregateQuery = new ArrayList<FilterList>();
+        aggregateQuery.add(filterList);
+        aggregateQuery.add(filetList2);
+        
+        double aggregateQueryValue = distributedQuery.query(aggregateQuery);
+        
+        logger.info("Query: " + filterList + ", " + filetList2 + " => " + aggregateQueryValue);
     }
     
 //    public String worldSizeExport(String worldSizePath, Configuration conf) throws IOException {

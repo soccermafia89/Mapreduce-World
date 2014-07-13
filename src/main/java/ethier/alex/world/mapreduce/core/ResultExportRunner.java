@@ -40,14 +40,14 @@ public class ResultExportRunner extends Configured implements Tool {
     
     private Path elementListPath;
     private String tmpDirectory;
-    private String outputPath;
+//    private String outputPath;
     
     private Collection<ElementList> completedPartitions;
 
-    public ResultExportRunner(Path myElementListPath, String myOutputPath, String myTmpDirectory) {
+    public ResultExportRunner(Path myElementListPath, String myTmpDirectory) {
         elementListPath = myElementListPath;
         tmpDirectory = myTmpDirectory;
-        outputPath = myOutputPath;
+//        outputPath = myOutputPath;
     }
 
     @Override
@@ -83,13 +83,9 @@ public class ResultExportRunner extends Configured implements Tool {
         SequenceFileOutputFormat.setOutputPath(job, new Path(tmpDirectory));
         
         FileSystem fileSystem = FileSystem.get(jobConf);
-        logger.error("TODO CHECK: why delete/need output path: outputPath => " + outputPath);
-        fileSystem.delete(new Path(outputPath), true);
+//        fileSystem.delete(new Path(outputPath), true);
         fileSystem.delete(new Path(tmpDirectory), true);
-//        HdfsOutput.setupDefaultOutput(job, new JobC(workDirectory + "/defaultOutput"));
-//        HdfsOutput.addNamedOutput(job, RESULT_NAMED_OUTPUT, workDirectory + "/results", FileOutputFormat.class, Text.class, Text.class);
 
-//        HdfsOutput.clearNamedOutputs(jobConf);
         MemoryToken memoryToken = job.openConnection();
         int ret = job.waitForCompletion(true) ? 0 : 1;
         String resultStr = HdfsMemoryManager.getString(RESULT_NAMED_OUTPUT, job.getConfiguration());

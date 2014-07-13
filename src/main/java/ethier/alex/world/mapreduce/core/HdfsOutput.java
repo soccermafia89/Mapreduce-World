@@ -22,8 +22,8 @@ import org.apache.log4j.Logger;
  */
 // This class binds the named output to an output path.
 // The implementation of the MultipleOutputs class is complete garbage.  Not only does it mix static and non-static methods in a confusing way,
-// It also allows the specification of the output path to occur within the mapper itself, not when the named output is defined.
-// Job I/O should not be designated within mappers, they should be configured before mappers are run.
+// It also allows the specification of the output path to occur within the tasks, not when the named output is defined.
+// Job I/O should not be designated within tasks, they should be configured before mappers are run.
 public class HdfsOutput {
 
     private static Logger logger = Logger.getLogger(WorldMapper.class);
