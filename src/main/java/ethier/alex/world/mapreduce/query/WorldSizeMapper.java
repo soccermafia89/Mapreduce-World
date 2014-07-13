@@ -7,8 +7,10 @@ package ethier.alex.world.mapreduce.query;
 import ethier.alex.world.core.data.Element;
 import ethier.alex.world.core.data.ElementList;
 import ethier.alex.world.core.data.ElementState;
+import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import ethier.alex.world.mapreduce.data.ElementListWritable;
+import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
 import java.io.*;
 import java.math.BigDecimal;
 import org.apache.hadoop.io.Text;
@@ -30,7 +32,8 @@ public class WorldSizeMapper extends Mapper<Text, ElementListWritable, Text, Wri
 
         int mapperId = context.getTaskAttemptID().getTaskID().getId();
         logger.info("Setting up mapper: " + mapperId);
-        radices = QueryRunner.deserializeRadices(context.getConfiguration().get(QueryRunner.RADICES_KEY));
+        String serializedRadices = HdfsMemoryManager.getString(WorldSizeRunner.MEMORY_RADICES_NAME, context.getConfiguration());
+        radices = Partition.deserializeRadices(serializedRadices);
         logger.info("Setup complete.");
     }
 
@@ -51,8 +54,8 @@ public class WorldSizeMapper extends Mapper<Text, ElementListWritable, Text, Wri
         context.write(key, new BigDecimalWritable(weight));
     }
 
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
-//        outputWriter.close();
-    }
+//    @Override
+//    protected void cleanup(Context context) throws IOException, InterruptedException {
+////        outputWriter.close();
+//    }
 }

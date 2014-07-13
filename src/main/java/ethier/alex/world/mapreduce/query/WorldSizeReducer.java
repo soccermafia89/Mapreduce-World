@@ -52,7 +52,7 @@ public class WorldSizeReducer extends Reducer<Text, BigDecimalWritable, Text, Te
             sum = sum.add(bigDecimal);
         }
 
-        HdfsMemoryManager.setString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, sum.toPlainString(), context.getConfiguration());
+        HdfsMemoryManager.setString(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, sum.toPlainString(), context.getConfiguration());
 //        memoryManager.setString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, sum.toPlainString());
 //        logger.info("found sum: " + sum.toPlainString());
 //        FileSystem fileSystem = FileSystem.get(context.getConfiguration());

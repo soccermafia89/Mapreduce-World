@@ -85,15 +85,4 @@ public class TestQuery {
         
         logger.info("Query: " + filterList + ", " + filetList2 + " => " + aggregateQueryValue);
     }
-    
-//    public String worldSizeExport(String worldSizePath, Configuration conf) throws IOException {
-//        
-//        FileSystem fileSystem = FileSystem.get(conf);
-//        FSDataInputStream inputStream = fileSystem.open(new Path(worldSizePath));
-//        StringWriter writer = new StringWriter();
-//        IOUtils.copy(inputStream, writer, "UTF-8");
-//        String worldSizeString = writer.toString();
-//        
-//        return worldSizeString;
-//    }
 }

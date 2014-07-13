@@ -26,7 +26,7 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDec
     @Override
     protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context) throws IOException {
 
-        String worldSizeStr = HdfsMemoryManager.getString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, context.getConfiguration());
+        String worldSizeStr = HdfsMemoryManager.getString(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, context.getConfiguration());
         worldSize = new BigDecimal(worldSizeStr);
         logger.info("Reducer setup finished.");
     }
@@ -50,7 +50,7 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDec
         
         BigDecimal probability = sum.divide(worldSize, 10, RoundingMode.UP);
                 
-        HdfsMemoryManager.setString(QueryRunner.QUERY_NAMED_OUTPUT, probability.toPlainString(), context.getConfiguration());
+        HdfsMemoryManager.setString(QueryRunner.MEMORY_QUERY_NAME, probability.toPlainString(), context.getConfiguration());
         
         context.write(key, new BigDecimalWritable(probability));
     }

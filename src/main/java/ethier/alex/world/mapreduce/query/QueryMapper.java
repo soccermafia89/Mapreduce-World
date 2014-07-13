@@ -4,24 +4,18 @@
  */
 package ethier.alex.world.mapreduce.query;
 
-import ethier.alex.world.mapreduce.query.QueryRunner;
-import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.core.data.*;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import ethier.alex.world.mapreduce.data.ElementListWritable;
-import java.io.*;
+import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -43,36 +37,14 @@ public class QueryMapper extends Mapper<Text, ElementListWritable, Text, Writabl
         int mapperId = context.getTaskAttemptID().getTaskID().getId();
         logger.info("Setting up mapper: " + mapperId);
         try {
-            filters = readFilters(context);
-            radices = QueryRunner.deserializeRadices(context.getConfiguration().get(QueryRunner.RADICES_KEY));
+            String serializedFilters = HdfsMemoryManager.getString(QueryRunner.MEMORY_FILTERS_NAME, context.getConfiguration());
+            String serializedRadices = HdfsMemoryManager.getString(QueryRunner.MEMORY_RADICES_NAME, context.getConfiguration());
+            filters = FilterList.deserializeFilters(serializedFilters);
+            radices = Partition.deserializeRadices(serializedRadices);
         } catch (DecoderException ex) {
             throw new RuntimeException("Unable to setup query mapper.  Caused by: " + ExceptionUtils.getFullStackTrace(ex));
         }
         logger.info("Setup complete.");
-    }
-
-    public Collection<FilterList> readFilters(Context context) throws IOException, DecoderException {
-
-        String filterPath = context.getConfiguration().get(QueryRunner.FILTER_INPUT_PATH_KEY);
-        logger.info("Reading filters from: " + context.getConfiguration().get(QueryRunner.FILTER_INPUT_PATH_KEY));
-
-        FileSystem fileSystem = FileSystem.get(context.getConfiguration());
-        FSDataInputStream inputStream = fileSystem.open(new Path(filterPath));
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(inputStream, writer, "UTF-8");
-        String raw = writer.toString();
-        Collection<byte[]> bytes = CollectionByteSerializer.toBytes(raw);
-//                logger.info("Collection size: " + bytes.size());
-        Collection<FilterList> inputFilters = new ArrayList<FilterList>();
-        for (byte[] byteArray : bytes) {
-            ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
-            DataInput dataInput = new DataInputStream(bais);
-            FilterList filter = new FilterList(dataInput);
-            logger.info("Retreived filter: " + filter.toString());
-            inputFilters.add(filter);
-        }
-
-        return inputFilters;
     }
 
     @Override
