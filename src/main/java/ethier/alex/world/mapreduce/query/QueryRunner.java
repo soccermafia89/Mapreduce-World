@@ -4,18 +4,13 @@
  */
 package ethier.alex.world.mapreduce.query;
 
-import ethier.alex.world.addon.CollectionByteSerializer;
 import ethier.alex.world.core.data.FilterList;
 import ethier.alex.world.core.data.Partition;
-import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
-import ethier.alex.world.mapreduce.memory.MemoryJob;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
-import ethier.alex.world.mapreduce.memory.MemoryToken;
-import java.io.*;
+import ethier.alex.world.mapreduce.memory.MemoryJob;
 import java.util.ArrayList;
 import java.util.Collection;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -70,24 +65,11 @@ public class QueryRunner extends Configured implements Tool {
 
     @Override
     public int run(String[] strings) throws Exception {
-//        this.writeFilters();
         
         Configuration conf = getConf();
-//        conf.set(RADICES_KEY, QueryRunner.serializeRadices(radices));
-//        conf.set(WORLD_SIZE_KEY, worldSize);
-//        conf.set(FILTER_INPUT_PATH_KEY, baseDirectory + "/filters");
-        
-        
         JobConf jobConf = new JobConf(getConf());
-//        logger.info("Setting mapper memory to 1G");
-//        jobConf.set(JobConf.MAPRED_MAP_TASK_JAVA_OPTS, "-Xmx1g");
-//
-//        logger.info("Setting max number of attempts to 1.");
-//        jobConf.setMaxMapAttempts(1);
         jobConf.setJarByClass(this.getClass());
-//
-//
-//        jobConf.
+
         MemoryJob job = new MemoryJob(jobConf);
 
         job.setJobName(this.getClass().getName());
@@ -108,15 +90,13 @@ public class QueryRunner extends Configured implements Tool {
         FileSystem fileSystem = FileSystem.get(conf);
         fileSystem.delete(new Path(baseDirectory + "/query"), true);
         
-        MemoryToken memoryToken = job.openConnection();
         String serializedFilters = FilterList.serializeFilters(filters);
         String serializedRadices = Partition.serializeRadices(radices);
-        HdfsMemoryManager.setString(QueryRunner.MEMORY_FILTERS_NAME, serializedFilters, job.getConfiguration());
-        HdfsMemoryManager.setString(QueryRunner.MEMORY_RADICES_NAME, serializedRadices, job.getConfiguration());
-        HdfsMemoryManager.setString(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, worldSize, job.getConfiguration());
+        job.addToMemory(QueryRunner.MEMORY_FILTERS_NAME, serializedFilters);
+        job.addToMemory(QueryRunner.MEMORY_RADICES_NAME, serializedRadices);
+        job.addToMemory(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, worldSize);
         int ret = job.waitForCompletion(true) ? 0 : 1;
-        probabilityOutput = HdfsMemoryManager.getString(QueryRunner.MEMORY_QUERY_NAME, job.getConfiguration());
-        memoryToken.close();
+        probabilityOutput = job.getFromMemory(QueryRunner.MEMORY_QUERY_NAME);
         return ret;
     }
     

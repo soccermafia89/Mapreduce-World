@@ -6,15 +6,11 @@ package ethier.alex.world.mapreduce.core;
 
 import ethier.alex.world.mapreduce.data.ElementListWritable;
 import ethier.alex.world.addon.CollectionByteSerializer;
-import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.memory.TaskMemoryManager;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.log4j.Logger;
@@ -29,10 +25,13 @@ public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text
 //    Path outputPath;
     
 //    private HdfsOutput outputWriter;
+    private TaskMemoryManager memoryManager;
     
         @Override
         protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context)
                 throws IOException, InterruptedException {
+            
+            memoryManager = new TaskMemoryManager(context);
 //            outputWriter = new HdfsOutput(context);
 //            outputPath = new Path(context.getConfiguration().get(ResultExportRunner.RESULT_OUTPUT_KEY));
             logger.info("Reducer setup finished.");
@@ -62,12 +61,8 @@ public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text
                 byte[] serializedElementList = baos.toByteArray();
                 byteCollection.add(serializedElementList);
             }
-            
-//            FileSystem fileSystem = FileSystem.get(context.getConfiguration());
-//            FSDataOutputStream outStream = fileSystem.create(outputPath);
+
             String serializedResults = CollectionByteSerializer.toString(byteCollection);
-            HdfsMemoryManager.setString(ResultExportRunner.RESULT_NAMED_OUTPUT, serializedResults, context.getConfiguration());
-//            outStream.write(serializedResults.getBytes());         
-//            outStream.close();            
+            memoryManager.setString(ResultExportRunner.RESULT_NAMED_OUTPUT, serializedResults);          
         }
 }

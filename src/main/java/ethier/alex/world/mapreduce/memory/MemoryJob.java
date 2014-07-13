@@ -4,8 +4,10 @@
  */
 package ethier.alex.world.mapreduce.memory;
 
-import ethier.alex.world.mapreduce.memory.MemoryToken;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 
@@ -13,62 +15,44 @@ import org.apache.hadoop.mapreduce.Job;
 
  @author alex
  */
-
-
-// TODO : This class could use major clean up.
-
-/*
-
-HdfsMemoryManager should lazily setup the connection (create the conf-id folder).
-
-this means it will need a constructor to store setup information and only when a new method,
-open connection2 is called does it create the connection, this method is only called when the job
-calls open connection.
-
-then remove the first token from the wait for completion method.
-
-*/
 public class MemoryJob extends Job {
 
-//    MemoryToken memoryToken;
-    private static HdfsMemoryManager manager = new HdfsMemoryManager();
-    private MemoryToken memoryToken;
-    private Configuration conf;
+    private static JobMemoryManager manager = new JobMemoryManager();
+    private Map<String, String> archiveMemoryMap = new HashMap<String, String>();
 
     public MemoryJob(Configuration myConf) throws IOException {
-        super(manager.openConnection(myConf));
-        memoryToken = manager.getMemoryToken();
-        conf = myConf;
+        super(manager.writeConfiguration(myConf));
     }
 
     public MemoryJob(Configuration myConf, String jobName) throws IOException {
-        super(manager.openConnection(myConf), jobName);
-        memoryToken = manager.getMemoryToken();
-        conf = myConf;
+        super(manager.writeConfiguration(myConf), jobName);
+//        conf = myConf;
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        memoryToken.close();
-
-        super.finalize();
+    public void addToMemory(String key, String value) {
+        manager.addToMemory(key, value);
     }
-    
-    public MemoryToken openConnection() throws IOException {
-        HdfsMemoryManager hdfsMemoryManager = new HdfsMemoryManager();
-        hdfsMemoryManager.openConnection(conf);
-        return hdfsMemoryManager.getMemoryToken();
+
+    public String getFromMemory(String key) {
+        if (archiveMemoryMap.containsKey(key)) {
+            return archiveMemoryMap.get(key);
+        } else {
+            throw new RuntimeException("Missing key in memory map: " + key);
+        }
     }
 
     @Override
     public boolean waitForCompletion(boolean bool) throws IOException, InterruptedException, ClassNotFoundException {
         boolean toReturn;
         try {
+            manager.openConnection();
+            manager.syncMemory();
             toReturn = super.waitForCompletion(bool);
+            manager.syncMemory();
         } finally {
-            memoryToken.close();
+            archiveMemoryMap = manager.closeConnection();
         }
-        
+
         return toReturn;
     }
 }

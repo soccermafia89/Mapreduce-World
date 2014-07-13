@@ -6,9 +6,8 @@ package ethier.alex.world.mapreduce.query;
 
 import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
-import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
 import ethier.alex.world.mapreduce.memory.MemoryJob;
-import ethier.alex.world.mapreduce.memory.MemoryToken;
+import ethier.alex.world.mapreduce.memory.MemoryManager;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -77,18 +76,16 @@ public class WorldSizeRunner extends Configured implements Tool  {
             
             FileSystem fileSystem = FileSystem.get(conf);
             fileSystem.delete(new Path(tmpDirectory), true);
-            MemoryToken memoryToken = job.openConnection();
             
             String serializedRadices = Partition.serializeRadices(radices);
-            HdfsMemoryManager.setString(this.MEMORY_RADICES_NAME, serializedRadices, job.getConfiguration());
+            job.addToMemory(WorldSizeRunner.MEMORY_RADICES_NAME, serializedRadices);
             
             int ret = job.waitForCompletion(true) ? 0 : 1;
             
             logger.info("Completed World Size Job, closing manager, ret: " + ret);
             if(ret == 0) {
-                worldSize = HdfsMemoryManager.getString(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, conf);
+                worldSize = job.getFromMemory(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME);
             }
-            memoryToken.close();
             
             return ret;
     }

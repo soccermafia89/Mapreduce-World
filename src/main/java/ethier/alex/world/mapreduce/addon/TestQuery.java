@@ -47,10 +47,10 @@ public class TestQuery {
         conf.set("mapred.max.split.size", "5000000");
         conf.set(WorldRunner.RUN_INTITIAL_PARTITIONS_KEY, "" + 10000);
         
-//        logger.info("TMP DISABLED DISTRIBUTED PROCESSOR.");
-        logger.info("Running distributed processor.");
-        Processor distributedProcessor = new DistributedProcessor(rootPartition, "/world", conf, args);
-        distributedProcessor.runAll();
+        logger.info("TMP DISABLED DISTRIBUTED PROCESSOR.");
+//        logger.info("Running distributed processor.");
+//        Processor distributedProcessor = new DistributedProcessor(rootPartition, "/world", conf, args);
+//        distributedProcessor.runAll();
         
         logger.info("Running Query.");
         DistributedQuery distributedQuery = new DistributedQuery("/world", rootPartition.getRadices(), conf, args);

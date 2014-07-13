@@ -36,7 +36,7 @@ public class DistributedQuery implements Query {
         WorldSizeRunner worldSizeRunner = new WorldSizeRunner(myBasePath + "/completed", "/world/default", myRadices);
         int ret = ToolRunner.run(conf, worldSizeRunner, args);
         if(ret != 0) {
-            throw new RuntimeException("Unable to instatiate Distributed Query.");
+            throw new RuntimeException("Unable to instantiate Distributed Query.");
         }
         
         worldSize = worldSizeRunner.getWorldSize();

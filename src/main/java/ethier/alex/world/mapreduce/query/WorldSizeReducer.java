@@ -4,13 +4,12 @@
  */
 package ethier.alex.world.mapreduce.query;
 
-import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
-import ethier.alex.world.mapreduce.memory.MemoryToken;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
+import ethier.alex.world.mapreduce.memory.MemoryManager;
+import ethier.alex.world.mapreduce.memory.TaskMemoryManager;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Iterator;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.log4j.Logger;
@@ -25,10 +24,12 @@ public class WorldSizeReducer extends Reducer<Text, BigDecimalWritable, Text, Te
     
 //    private String outputPath;
 //    private HdfsMemoryManager memoryManager;
+    private TaskMemoryManager memoryManager;
     
     @Override
     protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context) throws IOException {
         
+        memoryManager = new TaskMemoryManager(context);
 //        memoryManager = HdfsMemoryManager.openManager(context.getConfiguration());
 //        outputPath = context.getConfiguration().get(WorldSizeRunner.WORLD_SIZE_OUTPUT_KEY);
         logger.info("Reducer setup finished.");
@@ -52,12 +53,6 @@ public class WorldSizeReducer extends Reducer<Text, BigDecimalWritable, Text, Te
             sum = sum.add(bigDecimal);
         }
 
-        HdfsMemoryManager.setString(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, sum.toPlainString(), context.getConfiguration());
-//        memoryManager.setString(WorldSizeRunner.WORLD_SIZE_OUTPUT_NAME, sum.toPlainString());
-//        logger.info("found sum: " + sum.toPlainString());
-//        FileSystem fileSystem = FileSystem.get(context.getConfiguration());
-//        FSDataOutputStream outStream = fileSystem.create(new Path(outputPath));
-//        outStream.write(sum.toPlainString().getBytes());         
-//        outStream.close();  
+        memoryManager.setString(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, sum.toPlainString());
     }
 }

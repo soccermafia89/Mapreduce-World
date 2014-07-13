@@ -4,12 +4,14 @@
  */
 package ethier.alex.world.mapreduce.query;
 
-import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.memory.MemoryManager;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
+import ethier.alex.world.mapreduce.memory.TaskMemoryManager;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Iterator;
+import java.util.Map;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.log4j.Logger;
@@ -22,11 +24,15 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDec
         
     private static Logger logger = Logger.getLogger(QueryReducer.class);
     BigDecimal worldSize;
+    private TaskMemoryManager memoryManager;
     
     @Override
     protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context) throws IOException {
+        
+        memoryManager = new TaskMemoryManager(context);
+        Map<String, String> memoryMap = memoryManager.syncMemory();
 
-        String worldSizeStr = HdfsMemoryManager.getString(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME, context.getConfiguration());
+        String worldSizeStr = memoryMap.get(WorldSizeRunner.MEMORY_WORLD_SIZE_NAME);
         worldSize = new BigDecimal(worldSizeStr);
         logger.info("Reducer setup finished.");
     }
@@ -50,7 +56,7 @@ public class QueryReducer extends Reducer<Text, BigDecimalWritable, Text, BigDec
         
         BigDecimal probability = sum.divide(worldSize, 10, RoundingMode.UP);
                 
-        HdfsMemoryManager.setString(QueryRunner.MEMORY_QUERY_NAME, probability.toPlainString(), context.getConfiguration());
+        memoryManager.setString(QueryRunner.MEMORY_QUERY_NAME, probability.toPlainString());
         
         context.write(key, new BigDecimalWritable(probability));
     }

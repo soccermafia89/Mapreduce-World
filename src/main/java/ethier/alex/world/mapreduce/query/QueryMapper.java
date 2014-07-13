@@ -7,13 +7,11 @@ package ethier.alex.world.mapreduce.query;
 import ethier.alex.world.core.data.*;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import ethier.alex.world.mapreduce.data.ElementListWritable;
-import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.memory.MemoryManager;
+import ethier.alex.world.mapreduce.memory.TaskMemoryManager;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.io.Text;
@@ -37,8 +35,11 @@ public class QueryMapper extends Mapper<Text, ElementListWritable, Text, Writabl
         int mapperId = context.getTaskAttemptID().getTaskID().getId();
         logger.info("Setting up mapper: " + mapperId);
         try {
-            String serializedFilters = HdfsMemoryManager.getString(QueryRunner.MEMORY_FILTERS_NAME, context.getConfiguration());
-            String serializedRadices = HdfsMemoryManager.getString(QueryRunner.MEMORY_RADICES_NAME, context.getConfiguration());
+            TaskMemoryManager memoryManager = new TaskMemoryManager(context);
+            Map<String, String> memoryMap = memoryManager.syncMemory();
+            
+            String serializedFilters = memoryMap.get(QueryRunner.MEMORY_FILTERS_NAME);
+            String serializedRadices = memoryMap.get(QueryRunner.MEMORY_RADICES_NAME);
             filters = FilterList.deserializeFilters(serializedFilters);
             radices = Partition.deserializeRadices(serializedRadices);
         } catch (DecoderException ex) {

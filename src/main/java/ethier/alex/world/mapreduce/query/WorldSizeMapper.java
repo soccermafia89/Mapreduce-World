@@ -10,9 +10,11 @@ import ethier.alex.world.core.data.ElementState;
 import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import ethier.alex.world.mapreduce.data.ElementListWritable;
-import ethier.alex.world.mapreduce.memory.HdfsMemoryManager;
+import ethier.alex.world.mapreduce.memory.MemoryManager;
+import ethier.alex.world.mapreduce.memory.TaskMemoryManager;
 import java.io.*;
 import java.math.BigDecimal;
+import java.util.Map;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -29,10 +31,14 @@ public class WorldSizeMapper extends Mapper<Text, ElementListWritable, Text, Wri
 
     @Override
     protected void setup(Context context) throws IOException {
-
         int mapperId = context.getTaskAttemptID().getTaskID().getId();
         logger.info("Setting up mapper: " + mapperId);
-        String serializedRadices = HdfsMemoryManager.getString(WorldSizeRunner.MEMORY_RADICES_NAME, context.getConfiguration());
+
+
+        MemoryManager memoryManager = new TaskMemoryManager(context);
+        Map<String, String> memoryMap = memoryManager.syncMemory();
+
+        String serializedRadices = memoryMap.get(WorldSizeRunner.MEMORY_RADICES_NAME);
         radices = Partition.deserializeRadices(serializedRadices);
         logger.info("Setup complete.");
     }
@@ -53,7 +59,6 @@ public class WorldSizeMapper extends Mapper<Text, ElementListWritable, Text, Wri
 
         context.write(key, new BigDecimalWritable(weight));
     }
-
 //    @Override
 //    protected void cleanup(Context context) throws IOException, InterruptedException {
 ////        outputWriter.close();
