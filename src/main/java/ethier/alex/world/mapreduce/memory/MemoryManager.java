@@ -19,6 +19,13 @@ import org.apache.log4j.Logger;
 
  @author alex
  */
+
+/**
+TODO: Fix the memory manager implementation.
+
+Instead of having two classes extend a base memory manager, completely separate them into two different classes.
+It will help reduce the clutter.
+*/
 public class MemoryManager {
 
     private static Logger logger = Logger.getLogger(MemoryManager.class);

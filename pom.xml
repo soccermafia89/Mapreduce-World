@@ -12,67 +12,132 @@
         <developerConnection>scm:git:ssh://git@github.com/soccermafia89/Mapreduce-World.git</developerConnection>
         <url>https://github.com/soccermafia89/Mapreduce-World</url>
     </scm>
+    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ethier.alex</groupId>
+                <artifactId>enum-world</artifactId>
+                <version>2.0.0-SNAPSHOT</version>
+            </dependency>
+        
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-core</artifactId>
+                <version>2.0.0-mr1-cdh4.5.0</version>
+<!--                <scope>provided</scope>-->
+            </dependency>
+            <dependency>                                                                                                                                       
+                <groupId>org.apache.hadoop</groupId>                                                                                                           
+                <artifactId>hadoop-common</artifactId>                                                                                                         
+                <version>2.0.0-cdh4.5.0</version>  
+<!--                <scope>provided</scope>-->
+            </dependency>  
+        
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.10</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.eclipsesource.minimal-json</groupId>
+                <artifactId>minimal-json</artifactId>
+                <version>0.9.1</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.0</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.1</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>1.2.17</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math</artifactId>
+                <version>2.1</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>11.0.2</version>
+                <type>jar</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>   
         <dependency>
             <groupId>ethier.alex</groupId>
             <artifactId>enum-world</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+<!--            <version>2.0.0-SNAPSHOT</version>-->
         </dependency>
         
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
-            <version>2.0.0-mr1-cdh4.5.0</version>
-            <scope>provided</scope>
+<!--            <version>2.0.0-mr1-cdh4.5.0</version>
+            <scope>provided</scope>-->
         </dependency>
         <dependency>                                                                                                                                       
             <groupId>org.apache.hadoop</groupId>                                                                                                           
             <artifactId>hadoop-common</artifactId>                                                                                                         
-            <version>2.0.0-cdh4.5.0</version>  
-            <scope>provided</scope>
+<!--            <version>2.0.0-cdh4.5.0</version>  
+            <scope>provided</scope>-->
         </dependency>  
         
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
-            <scope>test</scope>
+<!--            <version>4.10</version>
+            <scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>com.eclipsesource.minimal-json</groupId>
             <artifactId>minimal-json</artifactId>
-            <version>0.9.1</version>
+<!--            <version>0.9.1</version>-->
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.0</version>
-            <type>jar</type>
+<!--            <version>2.0</version>
+            <type>jar</type>-->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.1</version>
-            <type>jar</type>
+<!--            <version>3.1</version>
+            <type>jar</type>-->
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-            <type>jar</type>
+<!--            <version>1.2.17</version>
+            <type>jar</type>-->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math</artifactId>
-            <version>2.1</version>
-            <type>jar</type>
+<!--            <version>2.1</version>
+            <type>jar</type>-->
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>11.0.2</version>
-            <type>jar</type>
+<!--            <version>11.0.2</version>
+            <type>jar</type>-->
         </dependency>
     </dependencies>
   

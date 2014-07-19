@@ -15,11 +15,11 @@ import org.apache.log4j.Logger;
 
  @author alex
  */
-public class JobMemoryManager extends MemoryManager {
+public class ToolMemoryManager extends MemoryManager {
     
-    private static Logger logger = Logger.getLogger(JobMemoryManager.class);
+    private static Logger logger = Logger.getLogger(ToolMemoryManager.class);
 
-    public JobMemoryManager() {
+    public ToolMemoryManager() {
     }
 
     public Configuration writeConfiguration(Configuration myConf) throws IOException {

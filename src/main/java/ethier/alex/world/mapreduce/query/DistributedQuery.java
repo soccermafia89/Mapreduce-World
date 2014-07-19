@@ -9,8 +9,6 @@ import ethier.alex.world.query.Query;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
@@ -69,5 +67,4 @@ public class DistributedQuery implements Query {
             throw new RuntimeException("Query failed, caused by: " + ExceptionUtils.getFullStackTrace(ex));
         }
     }
-    
 }

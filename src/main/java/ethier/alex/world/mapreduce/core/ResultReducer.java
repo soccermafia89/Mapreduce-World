@@ -22,9 +22,7 @@ import org.apache.log4j.Logger;
 public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text>  {
     
     private static Logger logger = Logger.getLogger(ResultReducer.class);
-//    Path outputPath;
     
-//    private HdfsOutput outputWriter;
     private TaskMemoryManager memoryManager;
     
         @Override
@@ -32,8 +30,6 @@ public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text
                 throws IOException, InterruptedException {
             
             memoryManager = new TaskMemoryManager(context);
-//            outputWriter = new HdfsOutput(context);
-//            outputPath = new Path(context.getConfiguration().get(ResultExportRunner.RESULT_OUTPUT_KEY));
             logger.info("Reducer setup finished.");
         }
 
@@ -41,7 +37,6 @@ public class ResultReducer extends Reducer<Text, ElementListWritable, Text, Text
         protected void cleanup(org.apache.hadoop.mapreduce.Reducer.Context context)
                 throws IOException, InterruptedException {
             
-//            outputWriter.close();
             super.cleanup(context);
         }
 

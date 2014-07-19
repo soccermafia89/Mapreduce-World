@@ -82,15 +82,12 @@ public class ResultExportRunner extends Configured implements Tool {
         SequenceFileOutputFormat.setOutputPath(job, new Path(tmpDirectory));
         
         FileSystem fileSystem = FileSystem.get(jobConf);
-//        fileSystem.delete(new Path(outputPath), true);
         fileSystem.delete(new Path(tmpDirectory), true);
 
-//        MemoryToken memoryToken = job.openConnection();
         int ret = job.waitForCompletion(true) ? 0 : 1;
+        
         String resultStr =job.getFromMemory(RESULT_NAMED_OUTPUT);
-//        memoryToken.close();
         Collection<byte[]> bytes = CollectionByteSerializer.toBytes(resultStr);
-//                logger.info("Collection size: " + bytes.size());
         completedPartitions = new ArrayList<ElementList>();
         for(byte[] byteArray : bytes) {
             ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);

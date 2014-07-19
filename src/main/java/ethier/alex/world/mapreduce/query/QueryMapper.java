@@ -7,7 +7,6 @@ package ethier.alex.world.mapreduce.query;
 import ethier.alex.world.core.data.*;
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
 import ethier.alex.world.mapreduce.data.ElementListWritable;
-import ethier.alex.world.mapreduce.memory.MemoryManager;
 import ethier.alex.world.mapreduce.memory.TaskMemoryManager;
 import java.io.IOException;
 import java.math.BigDecimal;

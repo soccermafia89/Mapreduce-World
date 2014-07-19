@@ -5,7 +5,6 @@
 package ethier.alex.world.mapreduce.query;
 
 import ethier.alex.world.mapreduce.data.BigDecimalWritable;
-import ethier.alex.world.mapreduce.memory.MemoryManager;
 import ethier.alex.world.mapreduce.memory.TaskMemoryManager;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -22,16 +21,12 @@ public class WorldSizeReducer extends Reducer<Text, BigDecimalWritable, Text, Te
     
     private static Logger logger = Logger.getLogger(WorldSizeReducer.class);
     
-//    private String outputPath;
-//    private HdfsMemoryManager memoryManager;
     private TaskMemoryManager memoryManager;
     
     @Override
     protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context) throws IOException {
         
         memoryManager = new TaskMemoryManager(context);
-//        memoryManager = HdfsMemoryManager.openManager(context.getConfiguration());
-//        outputPath = context.getConfiguration().get(WorldSizeRunner.WORLD_SIZE_OUTPUT_KEY);
         logger.info("Reducer setup finished.");
     }
 

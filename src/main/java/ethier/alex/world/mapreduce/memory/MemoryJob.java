@@ -7,7 +7,6 @@ package ethier.alex.world.mapreduce.memory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 
@@ -17,7 +16,7 @@ import org.apache.hadoop.mapreduce.Job;
  */
 public class MemoryJob extends Job {
 
-    private static JobMemoryManager manager = new JobMemoryManager();
+    private static ToolMemoryManager manager = new ToolMemoryManager();
     private Map<String, String> archiveMemoryMap = new HashMap<String, String>();
 
     public MemoryJob(Configuration myConf) throws IOException {

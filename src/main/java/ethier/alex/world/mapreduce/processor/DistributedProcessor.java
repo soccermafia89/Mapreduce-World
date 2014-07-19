@@ -11,6 +11,7 @@ import ethier.alex.world.mapreduce.core.ResultExportRunner;
 import ethier.alex.world.mapreduce.core.WorldRunner;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Properties;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -31,6 +32,21 @@ public class DistributedProcessor implements Processor {
     private String[] args;
     
     private boolean hasRun = false;
+    
+    public DistributedProcessor(Partition myPartition, String myBaseDirectory, Properties props, String[] myArgs) {
+        baseDirectory = myBaseDirectory;
+        initialPartitions = new ArrayList<Partition>();
+        initialPartitions.add(myPartition);
+        conf = this.transformProperties(props);
+        args = myArgs;
+    }
+    
+    public DistributedProcessor(Collection<Partition> myPartitions, String myBaseDirectory, Properties props, String[] myArgs) {
+        baseDirectory = myBaseDirectory;
+        initialPartitions = myPartitions;
+        conf = this.transformProperties(props);
+        args = myArgs;
+    }
     
     public DistributedProcessor(Partition myPartition, String myBaseDirectory, Configuration myConf, String[] myArgs) {
         baseDirectory = myBaseDirectory;
@@ -97,5 +113,18 @@ public class DistributedProcessor implements Processor {
     @Override
     public void runSet() {
         this.runAll();
+    }
+    
+    private Configuration transformProperties(Properties props) {
+        Configuration conf = new Configuration();
+        for(Object key : props.keySet()) {
+            if(key instanceof String) {
+                String keyStr = (String) key;
+                String valStr = props.getProperty(keyStr);
+                
+                conf.set(keyStr, valStr);
+            }
+        }
+        return conf;
     }
 }

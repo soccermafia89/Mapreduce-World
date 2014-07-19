@@ -59,8 +59,4 @@ public class WorldSizeMapper extends Mapper<Text, ElementListWritable, Text, Wri
 
         context.write(key, new BigDecimalWritable(weight));
     }
-//    @Override
-//    protected void cleanup(Context context) throws IOException, InterruptedException {
-////        outputWriter.close();
-//    }
 }
